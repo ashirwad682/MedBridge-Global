@@ -77,13 +77,13 @@ export default function BenefitsSection() {
   };
 
   return (
-    <section id="about" className="w-full py-16 md:py-24 relative overflow-hidden scroll-mt-24 sm:scroll-mt-28">
+    <section id="about" className="w-full pt-4 sm:pt-6 md:pt-8 pb-14 md:pb-20 relative overflow-hidden scroll-mt-20">
       {/* Compatibility anchor for any legacy #why-us references */}
       <span id="why-us" className="sr-only" aria-hidden="true" />
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* 1. Header with Trust Indicators */}
-        <div className="text-center max-w-2xl mx-auto mb-12 md:mb-16">
+        <div className="text-center max-w-2xl mx-auto mb-6 sm:mb-8 md:mb-9">
           <span className="text-[11px] font-bold tracking-[0.18em] uppercase text-[#7657ff] dark:text-[#a99aff] mb-2.5 block">
             ABOUT MEDBRIDGE GLOBAL
           </span>

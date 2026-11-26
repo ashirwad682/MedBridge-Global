@@ -2,7 +2,7 @@ import { z } from "zod";
 
 const envSchema = z.object({
   MONGODB_URI: z.string().min(1, "MONGODB_URI is required"),
-  MONGODB_DB_NAME: z.string().default("medbridge_global"),
+  MONGODB_DB_NAME: z.string().default("medbridge"),
   AUTH_SECRET: z.string().min(16, "AUTH_SECRET must be at least 16 characters long"),
   APP_URL: z.string().default("http://localhost:3000"),
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),

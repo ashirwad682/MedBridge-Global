@@ -65,6 +65,27 @@ function AppointmentsContent() {
     }
   };
 
+  const handleCancel = async (aptId: string) => {
+    if (!confirm(`Are you sure you want to cancel appointment ${aptId}?`)) return;
+    try {
+      const res = await fetch("/api/appointments", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: aptId, status: "CANCELLED" }),
+      });
+      if (res.ok) {
+        setAppointments((prev) =>
+          prev.map((a) => (a.id === aptId ? { ...a, status: "cancelled" } : a))
+        );
+      } else {
+        const d = await res.json();
+        alert(d.error || "Failed to cancel appointment.");
+      }
+    } catch {
+      alert("Error reaching appointment cancellation service.");
+    }
+  };
+
   useEffect(() => {
     if (initialEmail || initialId) {
       fetchAppointments(initialEmail || initialId);
@@ -196,6 +217,18 @@ function AppointmentsContent() {
                     <span className="font-semibold block mb-0.5 text-neutral-900 dark:text-white">Chief Reason / Notes:</span>
                     <span>{apt.reason}</span>
                   </div>
+
+                  {apt.status !== "cancelled" && (
+                    <div className="mt-3.5 pt-3 border-t border-neutral-200/50 dark:border-white/10 flex justify-end">
+                      <button
+                        type="button"
+                        onClick={() => handleCancel(apt.id)}
+                        className="px-3.5 py-1.5 rounded-full border border-red-200 dark:border-red-900/40 bg-red-50/50 dark:bg-red-950/20 hover:bg-red-100 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 text-xs font-semibold transition-colors cursor-pointer"
+                      >
+                        Cancel Consultation
+                      </button>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

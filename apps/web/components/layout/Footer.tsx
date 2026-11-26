@@ -129,10 +129,19 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <span className="text-neutral-500">contact@medbridgeglobal.care</span>
+                <Link href="/contact" className="hover:text-neutral-900 dark:hover:text-white transition-colors">
+                  Contact Us
+                </Link>
               </li>
               <li>
-                <span className="text-neutral-500">+1 (800) 415-CARE</span>
+                <a href="mailto:contact@medbridgeglobal.care" className="hover:text-neutral-900 dark:hover:text-white transition-colors">
+                  contact@medbridgeglobal.care
+                </a>
+              </li>
+              <li>
+                <a href="tel:+18004152273" className="hover:text-neutral-900 dark:hover:text-white transition-colors">
+                  +1 (800) 415-CARE
+                </a>
               </li>
               <li>
                 <span className="text-neutral-500 text-[11px]">MedBridge Global Health Pavilion</span>

@@ -62,7 +62,7 @@ export const SITE_CONFIG = {
     { label: "Doctors", href: "/doctors" },
     { label: "Services", href: "/#services" },
     { label: "About", href: "/#about" },
-    { label: "Contact", href: "/#contact" },
+    { label: "Contact", href: "/contact" },
   ] as NavItem[],
 
   hero: {
@@ -274,7 +274,7 @@ export const SITE_CONFIG = {
           { label: "About MedBridge", href: "/#about" },
           { label: "Clinical Standards", href: "/#about" },
           { label: "Careers", href: "#" },
-          { label: "Contact Us", href: "#contact" },
+          { label: "Contact Us", href: "/contact" },
         ],
       },
       {

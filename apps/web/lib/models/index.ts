@@ -8,4 +8,5 @@ export * from "./PasswordResetToken";
 export * from "./EmailVerificationToken";
 export * from "./AuditLog";
 export * from "./Notification";
+export * from "./ContactInquiry";
 

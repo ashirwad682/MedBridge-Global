@@ -143,6 +143,9 @@ export default function Navbar() {
     if (href === "/doctors") {
       return pathname.startsWith("/doctors");
     }
+    if (href === "/contact") {
+      return pathname.startsWith("/contact");
+    }
     if (href === "/") {
       return pathname === "/" && !activeHash;
     }

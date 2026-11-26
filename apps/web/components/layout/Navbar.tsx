@@ -218,40 +218,40 @@ export default function Navbar() {
             />
           </Link>
 
-          {/* Desktop Center Links (Centered horizontally & vertically) */}
-          <ul
-            className={`hidden md:flex items-center font-medium text-neutral-600 dark:text-neutral-300 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 transition-all duration-300 ${
-              isScrolled ? "gap-2.5 lg:gap-4 text-[11.5px] lg:text-[12px]" : "gap-3 lg:gap-4.5 text-[12px] lg:text-[12.5px]"
-            }`}
-          >
-            {SITE_CONFIG.navLinks.map((item) => {
-              const active = isLinkActive(item.href);
-              return (
-                <li key={item.label}>
-                  <Link
-                    href={item.href}
-                    onClick={(e) => handleNavClick(e, item.href)}
-                    className={`px-3 py-1 rounded-full transition-all duration-200 tracking-normal focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 whitespace-nowrap ${
-                      active
-                        ? "text-neutral-950 dark:text-white font-semibold bg-white/70 dark:bg-white/15 shadow-2xs"
-                        : "text-neutral-600 dark:text-neutral-300 hover:text-neutral-950 dark:hover:text-white hover:bg-white/40 dark:hover:bg-white/10"
-                    }`}
-                  >
-                    {item.label}
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
+          {/* Desktop Navigation Links & Action Controls (Equal-spaced flow) */}
+          <div className="hidden md:flex items-center gap-1.5 lg:gap-2">
+            {/* Nav Links */}
+            <ul className="flex items-center gap-1 lg:gap-1.5 font-medium text-neutral-600 dark:text-neutral-300">
+              {SITE_CONFIG.navLinks.map((item) => {
+                const active = isLinkActive(item.href);
+                return (
+                  <li key={item.label}>
+                    <Link
+                      href={item.href}
+                      onClick={(e) => handleNavClick(e, item.href)}
+                      className={`px-3 py-1 rounded-full transition-all duration-200 tracking-normal focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 whitespace-nowrap ${
+                        isScrolled
+                          ? "text-[11.5px] lg:text-[12px] px-2.5 py-1"
+                          : "text-[12px] lg:text-[12.5px] px-3 py-1"
+                      } ${
+                        active
+                          ? "text-neutral-950 dark:text-white font-semibold bg-white/70 dark:bg-white/15 shadow-2xs"
+                          : "text-neutral-600 dark:text-neutral-300 hover:text-neutral-950 dark:hover:text-white hover:bg-white/40 dark:hover:bg-white/10"
+                      }`}
+                    >
+                      {item.label}
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
 
-          {/* Right Action Area */}
-          <div className="hidden md:flex items-center shrink-0 gap-2 sm:gap-2.5">
-            {/* Theme Toggle Button */}
+            {/* Symmetrically Centered Theme Toggle Button */}
             <button
               type="button"
               onClick={toggleTheme}
               aria-label={`Switch to ${theme === "light" ? "dark" : "light"} mode`}
-              className="w-8 h-8 rounded-full bg-white/50 dark:bg-white/10 hover:bg-white/80 dark:hover:bg-white/20 border border-white/70 dark:border-white/15 text-neutral-700 dark:text-neutral-200 flex items-center justify-center transition-all duration-200 shadow-2xs cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
+              className="w-8 h-8 rounded-full bg-white/50 dark:bg-white/10 hover:bg-white/80 dark:hover:bg-white/20 border border-white/70 dark:border-white/15 text-neutral-700 dark:text-neutral-200 flex items-center justify-center transition-all duration-200 shadow-2xs cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 shrink-0 mx-0.5"
             >
               {theme === "light" ? (
                 <Moon className="w-3.5 h-3.5 transition-transform duration-300 hover:-rotate-12" />
@@ -260,14 +260,15 @@ export default function Navbar() {
               )}
             </button>
 
+            {/* Auth Buttons / Profile Dropdown */}
             {!user ? (
-              <>
+              <div className="flex items-center gap-1.5 lg:gap-2">
                 {/* Minimal Log In Text Button */}
                 <button
                   type="button"
                   onClick={() => openAuthModal("login", "patient")}
-                  className={`font-semibold text-neutral-700 dark:text-neutral-200 hover:text-black dark:hover:text-white transition-colors duration-200 cursor-pointer rounded-full hover:bg-white/40 dark:hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 ${
-                    isScrolled ? "text-[11px] px-2.5 py-1.5" : "text-xs px-3 py-1.5"
+                  className={`font-semibold text-neutral-700 dark:text-neutral-200 hover:text-black dark:hover:text-white transition-colors duration-200 cursor-pointer rounded-full hover:bg-white/40 dark:hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 shrink-0 whitespace-nowrap ${
+                    isScrolled ? "text-[11px] px-2.5 py-1" : "text-xs px-3 py-1"
                   }`}
                 >
                   Log In
@@ -277,7 +278,7 @@ export default function Navbar() {
                 <button
                   type="button"
                   onClick={() => openAuthModal("select-role")}
-                  className={`inline-flex items-center justify-center font-semibold rounded-full bg-[#0a0a0a] hover:bg-neutral-800 text-white dark:bg-white dark:hover:bg-neutral-100 dark:text-neutral-950 transition-all duration-200 shadow-sm hover:shadow active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 cursor-pointer whitespace-nowrap ${
+                  className={`inline-flex items-center justify-center font-semibold rounded-full bg-[#0a0a0a] hover:bg-neutral-800 text-white dark:bg-white dark:hover:bg-neutral-100 dark:text-neutral-950 transition-all duration-200 shadow-sm hover:shadow active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 cursor-pointer shrink-0 whitespace-nowrap ${
                     isScrolled
                       ? "text-[11px] px-3.5 py-1.5"
                       : "text-xs px-4 md:px-5 py-2"
@@ -285,10 +286,10 @@ export default function Navbar() {
                 >
                   Get Started
                 </button>
-              </>
+              </div>
             ) : (
               /* Authenticated User Profile Dropdown */
-              <div className="relative" ref={profileDropdownRef}>
+              <div className="relative shrink-0" ref={profileDropdownRef}>
                 <button
                   type="button"
                   onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}

@@ -249,12 +249,12 @@ export default function Navbar() {
               })}
             </ul>
 
-            {/* Symmetrically Centered Theme Toggle Button */}
+            {/* Symmetrically Centered Theme Toggle Button with Equal Visual Spacing */}
             <button
               type="button"
               onClick={toggleTheme}
               aria-label={`Switch to ${theme === "light" ? "dark" : "light"} mode`}
-              className="w-8 h-8 rounded-full bg-white/50 dark:bg-white/10 hover:bg-white/80 dark:hover:bg-white/20 border border-white/70 dark:border-white/15 text-neutral-700 dark:text-neutral-200 flex items-center justify-center transition-all duration-200 shadow-2xs cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 shrink-0 mx-0.5"
+              className="w-8 h-8 rounded-full bg-neutral-200/60 hover:bg-neutral-300/60 dark:bg-white/10 dark:hover:bg-white/20 border border-neutral-300/80 dark:border-white/15 text-neutral-800 dark:text-neutral-200 flex items-center justify-center transition-all duration-200 shadow-2xs cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 shrink-0"
             >
               {theme === "light" ? (
                 <Moon className="w-3.5 h-3.5 transition-transform duration-300 hover:-rotate-12" />
@@ -271,7 +271,7 @@ export default function Navbar() {
                   type="button"
                   onClick={() => openAuthModal("login", "patient")}
                   className={`font-semibold text-neutral-700 dark:text-neutral-200 hover:text-black dark:hover:text-white transition-colors duration-200 cursor-pointer rounded-full hover:bg-white/40 dark:hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 shrink-0 whitespace-nowrap ${
-                    isScrolled ? "text-[11px] px-2.5 py-1" : "text-xs px-3 py-1"
+                    isScrolled ? "text-[11.5px] lg:text-[12px] px-2.5 py-1" : "text-[12px] lg:text-[12.5px] px-3 py-1"
                   }`}
                 >
                   Log In

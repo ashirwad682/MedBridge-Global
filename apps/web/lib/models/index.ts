@@ -9,4 +9,4 @@ export * from "./EmailVerificationToken";
 export * from "./AuditLog";
 export * from "./Notification";
 export * from "./ContactInquiry";
-
+export * from "./Specialty";

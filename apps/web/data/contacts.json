@@ -1,1 +1,15 @@
-[]
+[
+  {
+    "ticketId": "MBG-CNT-2026-FV0UO",
+    "name": "n.,mn",
+    "email": "as@gmail.com",
+    "department": "general",
+    "urgency": "routine",
+    "preferredContactMethod": "sms",
+    "subject": "nknl",
+    "message": "jlhlhkjlihl;k bugjigkj jo ulk nk",
+    "status": "NEW",
+    "createdAt": "2026-11-26T10:25:57.946Z",
+    "ipAddress": "::1"
+  }
+]

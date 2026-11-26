@@ -1,7 +1,8 @@
 import dotenv from "dotenv";
 import path from "path";
 
-// Load .env.local from project root if present
+// Load .env.local from project root and backend/.env
+dotenv.config({ path: path.resolve(__dirname, "../.env") });
 dotenv.config({ path: path.resolve(process.cwd(), ".env.local") });
 dotenv.config();
 

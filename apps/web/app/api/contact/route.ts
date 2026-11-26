@@ -1,95 +1,65 @@
 import { NextRequest, NextResponse } from "next/server";
-import fs from "fs";
-import path from "path";
 import { checkRateLimit } from "@/lib/auth/rate-limit";
 import { logAuditEvent } from "@/lib/auth/audit";
 import { ContactInquiry } from "@/lib/models/ContactInquiry";
 import { connectToDatabase } from "@/lib/db/mongodb";
 
-const dataFilePath = path.join(process.cwd(), "data", "contacts.json");
-
-export interface ContactRecord {
-  ticketId: string;
-  name: string;
-  email: string;
-  phone?: string;
-  department: string;
-  urgency: "routine" | "urgent" | "emergency_advisory";
-  preferredContactMethod: "email" | "phone" | "sms";
-  subject: string;
-  message: string;
-  status: "NEW" | "IN_REVIEW" | "RESPONDED" | "RESOLVED";
-  createdAt: string;
-  ipAddress?: string;
-}
-
-function readContacts(): ContactRecord[] {
-  try {
-    if (!fs.existsSync(dataFilePath)) {
-      fs.mkdirSync(path.dirname(dataFilePath), { recursive: true });
-      fs.writeFileSync(dataFilePath, "[]", "utf8");
-      return [];
-    }
-    const raw = fs.readFileSync(dataFilePath, "utf8");
-    return JSON.parse(raw);
-  } catch (err) {
-    console.error("[Contact API] Error reading contacts.json:", err);
-    return [];
-  }
-}
-
-function writeContacts(contacts: ContactRecord[]): void {
-  fs.mkdirSync(path.dirname(dataFilePath), { recursive: true });
-  fs.writeFileSync(dataFilePath, JSON.stringify(contacts, null, 2), "utf8");
-}
-
 function sanitizeText(input: string): string {
   return input
-    .replace(/[<>]/g, "") // basic tag stripping to sanitize
+    .replace(/[<>]/g, "")
     .trim();
 }
 
 export async function GET(request: NextRequest) {
-  const searchParams = request.nextUrl.searchParams;
-  const ticketId = searchParams.get("ticketId")?.trim().toUpperCase();
-  const email = searchParams.get("email")?.trim().toLowerCase();
+  try {
+    await connectToDatabase();
+    const searchParams = request.nextUrl.searchParams;
+    const ticketId = searchParams.get("ticketId")?.trim().toUpperCase();
+    const email = searchParams.get("email")?.trim().toLowerCase();
 
-  const all = readContacts();
-
-  if (ticketId) {
-    const found = all.find((c) => c.ticketId.toUpperCase() === ticketId);
-    if (!found) {
-      return NextResponse.json({ error: "Inquiry not found" }, { status: 404 });
+    if (ticketId) {
+      const found = await ContactInquiry.findOne({ ticketId }).lean();
+      if (!found) {
+        return NextResponse.json({ error: "Inquiry not found" }, { status: 404 });
+      }
+      return NextResponse.json({
+        ticket: {
+          ticketId: found.ticketId,
+          department: found.department,
+          subject: found.subject,
+          status: found.status,
+          createdAt: found.createdAt,
+        },
+      });
     }
-    // Return sanitized status info
-    return NextResponse.json({
-      ticket: {
-        ticketId: found.ticketId,
-        department: found.department,
-        subject: found.subject,
-        status: found.status,
-        createdAt: found.createdAt,
-      },
-    });
-  }
 
-  if (email) {
-    const list = all
-      .filter((c) => c.email.toLowerCase() === email)
-      .map((c) => ({
+    if (email) {
+      const list = await ContactInquiry.find({ email })
+        .sort({ createdAt: -1 })
+        .lean();
+
+      const sanitized = list.map((c: any) => ({
         ticketId: c.ticketId,
         department: c.department,
         subject: c.subject,
         status: c.status,
         createdAt: c.createdAt,
       }));
-    return NextResponse.json({ inquiries: list });
-  }
 
-  return NextResponse.json(
-    { message: "Provide a ticketId or email to lookup inquiry status." },
-    { status: 200 }
-  );
+      return NextResponse.json({ inquiries: sanitized });
+    }
+
+    return NextResponse.json(
+      { message: "Provide a ticketId or email to lookup inquiry status." },
+      { status: 200 }
+    );
+  } catch (error: unknown) {
+    console.error("[API Contact GET] Database error:", error);
+    return NextResponse.json(
+      { error: "Failed to retrieve inquiry from database." },
+      { status: 500 }
+    );
+  }
 }
 
 export async function POST(request: NextRequest) {
@@ -191,54 +161,28 @@ export async function POST(request: NextRequest) {
     const randomHex = Math.random().toString(36).substring(2, 7).toUpperCase();
     const ticketId = `MBG-CNT-${new Date().getFullYear()}-${randomHex}`;
 
-    const newRecord: ContactRecord = {
+    // Pure MongoDB persistence
+    await connectToDatabase();
+    const inquiry = await ContactInquiry.create({
       ticketId,
       name: cleanName,
       email: cleanEmail,
       phone: cleanPhone,
       department: dept,
-      urgency: urg as any,
-      preferredContactMethod: method as any,
+      urgency: urg,
+      preferredContactMethod: method,
       subject: cleanSubject,
       message: cleanMessage,
       status: "NEW",
-      createdAt: new Date().toISOString(),
       ipAddress: ip,
-    };
+      userAgent: request.headers.get("user-agent") || undefined,
+    });
 
-    // 1. File persistence (guarantees local & fallback storage)
-    const all = readContacts();
-    all.unshift(newRecord);
-    writeContacts(all);
-
-    // 2. MongoDB persistence (if connected)
-    try {
-      await connectToDatabase();
-      await ContactInquiry.create({
-        ticketId,
-        name: cleanName,
-        email: cleanEmail,
-        phone: cleanPhone,
-        department: dept,
-        urgency: urg,
-        preferredContactMethod: method,
-        subject: cleanSubject,
-        message: cleanMessage,
-        status: "NEW",
-        ipAddress: ip,
-        userAgent: request.headers.get("user-agent") || undefined,
-      });
-    } catch (dbErr) {
-      // Non-blocking fallback: logged for observability
-      console.warn("[Contact API] MongoDB save bypassed or unavailable:", (dbErr as Error).message);
-    }
-
-    // 3. Security Audit Logging
     await logAuditEvent({
-      action: "CONTACT_INQUIRY_SUBMITTED",
-      resource: "Contact",
+      action: "CONTACT_FORM_SUBMISSION",
+      resource: "ContactInquiry",
       status: "SUCCESS",
-      details: `Ticket ${ticketId} created by ${cleanEmail} for department: ${dept}`,
+      details: `Inquiry ticket ${ticketId} created for ${cleanEmail} (Department: ${dept})`,
       ipAddress: ip,
       userAgent: request.headers.get("user-agent") || undefined,
     });
@@ -246,21 +190,24 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         success: true,
+        message: "Thank you for reaching out. Your inquiry has been securely routed to our care team.",
         ticketId,
-        message:
-          "Your inquiry has been securely received by the MedBridge Global clinical coordination desk.",
-        createdAt: newRecord.createdAt,
-        expectedResponseTime:
-          urg === "urgent"
-            ? "Within 2 hours"
-            : "Within 1 business day",
+        inquiry: {
+          ticketId: inquiry.ticketId,
+          name: inquiry.name,
+          email: inquiry.email,
+          department: inquiry.department,
+          subject: inquiry.subject,
+          status: inquiry.status,
+          createdAt: inquiry.createdAt,
+        },
       },
       { status: 201 }
     );
-  } catch (error) {
-    console.error("[Contact API] Error processing inquiry:", error);
+  } catch (error: unknown) {
+    console.error("[API Contact POST] Database Error:", error);
     return NextResponse.json(
-      { error: "An unexpected error occurred while transmitting your inquiry. Please try again." },
+      { error: "We were unable to process your message at this time. Please try again or call our support line." },
       { status: 500 }
     );
   }

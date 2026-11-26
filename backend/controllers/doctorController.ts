@@ -1,43 +1,75 @@
 import { Request, Response } from "express";
-import { DOCTORS_DATA, SPECIALTIES_DATA, getDoctorById, getDoctorsBySpecialty } from "../services/medicalData";
+import { DoctorProfile, Specialty } from "../models";
 
 export const doctorController = {
-  getAll: (req: Request, res: Response): void => {
-    const { specialty, search } = req.query;
-    let doctors = [...DOCTORS_DATA];
+  getAll: async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { specialty, search, limit = "100" } = req.query;
 
-    if (specialty && typeof specialty === "string") {
-      doctors = getDoctorsBySpecialty(specialty);
+      const filter: Record<string, any> = {
+        verificationStatus: "VERIFIED",
+      };
+
+      if (specialty && typeof specialty === "string" && specialty !== "all") {
+        filter.specialtyId = specialty;
+      }
+
+      if (search && typeof search === "string") {
+        const q = new RegExp(search, "i");
+        filter.$or = [
+          { name: q },
+          { fullName: q },
+          { specialtyName: q },
+          { hospitalAffiliation: q },
+          { hospitalOrClinic: q },
+          { bio: q },
+          { location: q },
+        ];
+      }
+
+      const doctors = await DoctorProfile.find(filter)
+        .sort({ rating: -1, reviewCount: -1 })
+        .limit(parseInt(limit as string, 10))
+        .lean();
+
+      res.json({ success: true, count: doctors.length, doctors });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Error retrieving doctors";
+      res.status(500).json({ success: false, error: msg });
     }
-
-    if (search && typeof search === "string") {
-      const q = search.toLowerCase();
-      doctors = doctors.filter(
-        (doc) =>
-          doc.name.toLowerCase().includes(q) ||
-          doc.specialtyName.toLowerCase().includes(q) ||
-          doc.hospitalAffiliation.toLowerCase().includes(q) ||
-          doc.bio.toLowerCase().includes(q)
-      );
-    }
-
-    res.json({ success: true, count: doctors.length, doctors });
   },
 
-  getById: (req: Request, res: Response): void => {
-    const { id } = req.params;
-    const doctor = getDoctorById(id);
+  getById: async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { id } = req.params;
+      const query: Record<string, any> = { doctorId: id };
 
-    if (!doctor) {
-      res.status(404).json({ success: false, error: "Doctor not found" });
-      return;
+      if (id.match(/^[0-9a-fA-F]{24}$/)) {
+        query.$or = [{ doctorId: id }, { _id: id }];
+        delete query.doctorId;
+      }
+
+      const doctor = await DoctorProfile.findOne(query).lean();
+
+      if (!doctor) {
+        res.status(404).json({ success: false, error: "Doctor not found" });
+        return;
+      }
+
+      res.json({ success: true, doctor });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Error retrieving doctor";
+      res.status(500).json({ success: false, error: msg });
     }
-
-    res.json({ success: true, doctor });
   },
 
-  getSpecialties: (_req: Request, res: Response): void => {
-    res.json({ success: true, specialties: Object.values(SPECIALTIES_DATA) });
+  getSpecialties: async (_req: Request, res: Response): Promise<void> => {
+    try {
+      const specialties = await Specialty.find().sort({ name: 1 }).lean();
+      res.json({ success: true, count: specialties.length, specialties });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Error retrieving specialties";
+      res.status(500).json({ success: false, error: msg });
+    }
   },
 };
-

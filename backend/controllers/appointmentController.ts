@@ -1,93 +1,70 @@
 import { Request, Response } from "express";
-import fs from "fs";
-import path from "path";
 import { AuthenticatedRequest } from "../middleware/auth";
-import { Appointment } from "../models";
+import { Appointment, User } from "../models";
 import { appointmentBookingSchema } from "@medbridge/validation";
-import { AppointmentRecord } from "@medbridge/types";
-
-const dataFilePath = path.resolve(__dirname, "../../apps/web/data/appointments.json");
-
-function readAppointmentsFromFile(): AppointmentRecord[] {
-  try {
-    if (!fs.existsSync(dataFilePath)) {
-      return [];
-    }
-    const raw = fs.readFileSync(dataFilePath, "utf8");
-    return JSON.parse(raw);
-  } catch (err) {
-    return [];
-  }
-}
-
-function writeAppointmentsToFile(appointments: AppointmentRecord[]): void {
-  try {
-    fs.mkdirSync(path.dirname(dataFilePath), { recursive: true });
-    fs.writeFileSync(dataFilePath, JSON.stringify(appointments, null, 2), "utf8");
-  } catch (err) {
-    console.error("Error writing appointments to file:", err);
-  }
-}
 
 export const appointmentController = {
-  getSlots: (req: Request, res: Response): void => {
-    const { date, doctorId } = req.query;
-    if (!date || typeof date !== "string") {
-      res.status(400).json({ success: false, error: "Date is required" });
-      return;
-    }
-
-    const all = readAppointmentsFromFile();
-    const booked = all
-      .filter((apt) => {
-        if (apt.date !== date || apt.status === "cancelled") return false;
-        if (doctorId && doctorId !== "first-available" && apt.doctorId !== doctorId) return false;
-        return true;
-      })
-      .map((apt) => apt.timeSlot);
-
-    res.json({ success: true, bookedSlots: booked });
-  },
-
-  getAll: (req: AuthenticatedRequest, res: Response): void => {
-    const { date, email, doctorId, id } = req.query;
-
-    // Support slot availability lookup when ?date= is provided
-    if (date && typeof date === "string") {
-      appointmentController.getSlots(req, res);
-      return;
-    }
-
-    const all = readAppointmentsFromFile();
-
-    if (id && typeof id === "string") {
-      const match = all.filter((a) => a.id.toUpperCase() === id.toUpperCase());
-      res.json({ success: true, appointments: match });
-      return;
-    }
-
-    if (email && typeof email === "string") {
-      const match = all.filter((a) => a.patientEmail.toLowerCase() === email.toLowerCase());
-      res.json({ success: true, appointments: match });
-      return;
-    }
-
-    if (doctorId && typeof doctorId === "string") {
-      const match = all.filter((a) => a.doctorId === doctorId);
-      res.json({ success: true, appointments: match });
-      return;
-    }
-
-    // If authenticated user, filter by their email or return all for doctors
-    if (req.user) {
-      if (String(req.user.role).toLowerCase() === "patient") {
-        const match = all.filter((a) => a.patientEmail.toLowerCase() === req.user?.email.toLowerCase());
-        res.json({ success: true, appointments: match });
+  getSlots: async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { date, doctorId } = req.query;
+      if (!date || typeof date !== "string") {
+        res.status(400).json({ success: false, error: "Date is required" });
         return;
       }
-    }
 
-    res.json({ success: true, appointments: all });
+      const query: Record<string, any> = {
+        appointmentDate: date,
+        status: { $ne: "CANCELLED" },
+      };
+
+      if (doctorId && typeof doctorId === "string" && doctorId !== "first-available") {
+        query.doctorSlug = doctorId;
+      }
+
+      const bookedDocs = await Appointment.find(query).select("appointmentTime").lean();
+      const booked = bookedDocs.map((apt: any) => apt.appointmentTime);
+
+      res.json({ success: true, bookedSlots: booked });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Error retrieving slots";
+      res.status(500).json({ success: false, error: msg });
+    }
+  },
+
+  getAll: async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+      const { date, email, doctorId, id } = req.query;
+
+      if (date && typeof date === "string") {
+        await appointmentController.getSlots(req, res);
+        return;
+      }
+
+      const filter: Record<string, any> = {};
+
+      if (id && typeof id === "string") {
+        filter.bookingReference = id.toUpperCase();
+      } else if (email && typeof email === "string") {
+        filter.patientEmail = email.toLowerCase();
+      } else if (doctorId && typeof doctorId === "string") {
+        filter.doctorSlug = doctorId;
+      } else if (req.user) {
+        if (String(req.user.role).toLowerCase() === "patient") {
+          filter.patientEmail = req.user.email.toLowerCase();
+        } else if (String(req.user.role).toLowerCase() === "doctor") {
+          filter.$or = [
+            { doctorId: req.user.userId },
+            { doctorSlug: req.user.email.split("@")[0] },
+          ];
+        }
+      }
+
+      const appointments = await Appointment.find(filter).sort({ appointmentDate: -1 }).lean();
+      res.json({ success: true, count: appointments.length, appointments });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Error fetching appointments";
+      res.status(500).json({ success: false, error: msg });
+    }
   },
 
   book: async (req: AuthenticatedRequest, res: Response): Promise<void> => {
@@ -98,94 +75,103 @@ export const appointmentController = {
         return;
       }
 
-      const data = parsed.data;
-      const all = readAppointmentsFromFile();
+      const {
+        patientName,
+        patientEmail,
+        patientPhone,
+        specialtyId,
+        specialtyName,
+        doctorId,
+        doctorName,
+        date,
+        timeSlot,
+      } = parsed.data;
+      const reason = (req.body as any).reason || (parsed.data as any).notes || "";
+      const consultationType = (req.body as any).consultationType || "IN_PERSON";
 
-      // Check slot collision
-      const isTaken = all.some(
-        (a) => a.date === data.date && a.timeSlot === data.timeSlot && a.doctorId === data.doctorId && a.status !== "cancelled"
-      );
-      if (isTaken) {
-        res.status(409).json({ success: false, error: "Selected time slot has just been booked. Please pick another." });
-        return;
+      const docSlug = doctorId || "first-available";
+
+      // Collision check
+      if (docSlug !== "first-available") {
+        const conflict = await Appointment.findOne({
+          doctorSlug: docSlug,
+          appointmentDate: date,
+          appointmentTime: timeSlot,
+          status: { $ne: "CANCELLED" },
+        });
+
+        if (conflict) {
+          res.status(409).json({ success: false, error: `The ${timeSlot} slot on ${date} is already booked.` });
+          return;
+        }
       }
 
       const randomSuffix = Math.floor(1000 + Math.random() * 9000);
-      const appointmentId = `MED-${data.date.replace(/-/g, "")}-${randomSuffix}`;
+      const bookingReference = `MBG-${new Date().getFullYear()}-${randomSuffix}`;
+      const user = await User.findOne({ email: patientEmail.toLowerCase() });
 
-      const newRecord: AppointmentRecord = {
-        id: appointmentId,
-        patientName: data.patientName,
-        patientEmail: data.patientEmail,
-        patientPhone: data.patientPhone,
-        patientAge: data.patientAge,
-        patientGender: data.patientGender,
-        doctorId: data.doctorId,
-        doctorName: data.doctorName,
-        specialtyId: data.specialtyId,
-        specialtyName: data.specialtyName,
-        hospitalAffiliation: data.hospitalAffiliation || "MedBridge Medical Center",
-        date: data.date,
-        timeSlot: data.timeSlot,
-        consultationReason: data.consultationReason,
-        consultationFee: data.consultationFee || "$180",
-        paymentMethod: data.paymentMethod || "Credit Card",
-        status: "confirmed",
-        createdAt: new Date().toISOString(),
-      };
-
-      all.unshift(newRecord);
-      writeAppointmentsToFile(all);
-
-      // Save to MongoDB if connected
-      try {
-        await new Appointment({
-          patientId: req.user?.userId || "000000000000000000000000",
-          patientName: data.patientName,
-          patientEmail: data.patientEmail,
-          patientPhone: data.patientPhone,
-          doctorName: data.doctorName,
-          specialty: data.specialtyName,
-          appointmentDate: data.date,
-          appointmentTime: data.timeSlot,
-          consultationType: "IN_PERSON",
-          status: "CONFIRMED",
-          notes: data.consultationReason,
-        }).save();
-      } catch (dbErr) {
-        // Fallback file persistence succeeded
-      }
+      const newApt = await Appointment.create({
+        bookingReference,
+        patientId: user?._id || (req.user ? req.user.userId : undefined),
+        patientName,
+        patientEmail: patientEmail.toLowerCase(),
+        patientPhone,
+        specialtyId,
+        specialtyName,
+        doctorSlug: docSlug,
+        doctorName: doctorName || "First Available Specialist",
+        appointmentDate: date,
+        appointmentTime: timeSlot,
+        consultationType: consultationType as any,
+        status: "CONFIRMED",
+        reason: reason || "General Consultation",
+      });
 
       res.status(201).json({
         success: true,
-        message: "Appointment confirmed successfully",
-        appointment: newRecord,
+        message: "Appointment confirmed",
+        appointment: newApt,
       });
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Appointment booking error";
+      const msg = err instanceof Error ? err.message : "Booking error";
       res.status(500).json({ success: false, error: msg });
     }
   },
 
-  cancel: (req: AuthenticatedRequest, res: Response): void => {
-    const id = req.params.id || req.body?.id;
-    const reason = req.body?.reason;
-    if (!id) {
-      res.status(400).json({ success: false, error: "Appointment ID is required" });
-      return;
+  cancel: async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+      const id = req.params.id || req.body.id || req.body.bookingReference;
+      const { cancellationReason } = req.body;
+
+      if (!id) {
+        res.status(400).json({ success: false, error: "Appointment ID or reference required" });
+        return;
+      }
+
+      const updated = await Appointment.findOneAndUpdate(
+        { $or: [{ bookingReference: String(id).toUpperCase() }, { _id: id }] },
+        {
+          $set: {
+            status: "CANCELLED",
+            cancellationReason: cancellationReason || "Cancelled by user",
+          },
+        },
+        { new: true }
+      );
+
+      if (!updated) {
+        res.status(404).json({ success: false, error: "Appointment not found" });
+        return;
+      }
+
+      res.json({
+        success: true,
+        message: "Appointment cancelled successfully",
+        appointment: updated,
+      });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Cancellation error";
+      res.status(500).json({ success: false, error: msg });
     }
-    const all = readAppointmentsFromFile();
-
-    const idx = all.findIndex((a) => a.id.toUpperCase() === id.toUpperCase());
-    if (idx === -1) {
-      res.status(404).json({ success: false, error: "Appointment not found" });
-      return;
-    }
-
-    all[idx].status = "cancelled";
-    writeAppointmentsToFile(all);
-
-    res.json({ success: true, message: "Appointment cancelled successfully", appointment: all[idx] });
   },
 };
-

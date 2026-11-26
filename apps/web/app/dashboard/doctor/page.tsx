@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
@@ -23,6 +23,8 @@ import {
   Award,
   ToggleLeft,
   ToggleRight,
+  RefreshCw,
+  Check,
 } from "lucide-react";
 
 interface PatientQueueItem {
@@ -35,49 +37,19 @@ interface PatientQueueItem {
   status: "Checked In" | "Confirmed" | "Completed";
 }
 
-const TODAY_QUEUE: PatientQueueItem[] = [
-  {
-    id: "PT-8821",
-    patientName: "Vikram Sharma",
-    ageGender: "46 / M",
-    timeSlot: "10:00 AM",
-    type: "Follow-Up Consultation",
-    chiefComplaint: "Review of cervical spine MRI scans & non-surgical therapy response.",
-    status: "Checked In",
-  },
-  {
-    id: "PT-9043",
-    patientName: "Meera Kapoor",
-    ageGender: "38 / F",
-    timeSlot: "11:30 AM",
-    type: "Diagnostic Review",
-    chiefComplaint: "Metabolic workup discussion and preventative treatment reconciliation.",
-    status: "Confirmed",
-  },
-  {
-    id: "PT-9122",
-    patientName: "Ananya Roy",
-    ageGender: "52 / F",
-    timeSlot: "02:00 PM",
-    type: "Specialist Follow-Up",
-    chiefComplaint: "Neuro-vascular assessment following 2D echocardiogram reports.",
-    status: "Confirmed",
-  },
-  {
-    id: "PT-9380",
-    patientName: "Naveen Joshi",
-    ageGender: "61 / M",
-    timeSlot: "03:45 PM",
-    type: "Diagnostic Consultation",
-    chiefComplaint: "Evaluation of high-resolution digital imaging scans.",
-    status: "Confirmed",
-  },
-];
-
 export default function DoctorDashboard() {
   const router = useRouter();
   const { user, isLoading, openAuthModal } = useAuth();
   const [isAvailable, setIsAvailable] = useState(true);
+  const [queue, setQueue] = useState<PatientQueueItem[]>([]);
+  const [stats, setStats] = useState({
+    todayAppointmentsCount: 4,
+    completedConsultationsCount: 1,
+    pendingReviewsCount: 3,
+    rating: 4.96,
+  });
+  const [isDataLoading, setIsDataLoading] = useState(true);
+  const [statusMessage, setStatusMessage] = useState<string | null>(null);
 
   // Route & Role protection
   useEffect(() => {
@@ -89,6 +61,91 @@ export default function DoctorDashboard() {
       }
     }
   }, [user, isLoading, openAuthModal, router]);
+
+  // Load live doctor profile, queue, and stats from MongoDB
+  const loadDoctorData = useCallback(async () => {
+    if (!user || user.role !== "doctor") return;
+    setIsDataLoading(true);
+
+    try {
+      const res = await fetch("/api/doctor/profile");
+      if (res.ok) {
+        const data = await res.json();
+        if (data.profile) {
+          setIsAvailable(data.profile.isAcceptingPatients ?? true);
+        }
+        if (data.stats) {
+          setStats({
+            todayAppointmentsCount: data.stats.todayAppointmentsCount ?? 0,
+            completedConsultationsCount: data.stats.completedConsultationsCount ?? 0,
+            pendingReviewsCount: data.stats.pendingReviewsCount ?? 0,
+            rating: data.profile?.rating ?? 4.96,
+          });
+        }
+        if (Array.isArray(data.todayQueue)) {
+          setQueue(data.todayQueue);
+        }
+      }
+    } catch (err) {
+      console.warn("Error loading doctor data from MongoDB:", err);
+    } finally {
+      setIsDataLoading(false);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (user && user.role === "doctor") {
+      loadDoctorData();
+    }
+  }, [user, loadDoctorData]);
+
+  // Toggle availability in MongoDB
+  const handleToggleAvailability = async () => {
+    const nextState = !isAvailable;
+    setIsAvailable(nextState);
+
+    try {
+      const res = await fetch("/api/doctor/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isAcceptingPatients: nextState }),
+      });
+
+      if (res.ok) {
+        setStatusMessage(
+          nextState
+            ? "Status updated: Now accepting patient consultations in MongoDB."
+            : "Status updated: Clinic slots set to Offline / Paused in MongoDB."
+        );
+        setTimeout(() => setStatusMessage(null), 3500);
+      }
+    } catch {
+      setIsAvailable(!nextState);
+      alert("Failed to update availability status.");
+    }
+  };
+
+  // Update appointment status in MongoDB
+  const handleUpdateStatus = async (appointmentId: string, newStatus: "Checked In" | "Completed") => {
+    try {
+      const res = await fetch("/api/doctor/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ appointmentId, status: newStatus }),
+      });
+
+      if (res.ok) {
+        setStatusMessage(`Appointment updated to "${newStatus}" in MongoDB.`);
+        setTimeout(() => setStatusMessage(null), 3500);
+        loadDoctorData();
+      } else {
+        const data = await res.json();
+        alert(data.error || "Failed to update appointment status.");
+      }
+    } catch {
+      alert("Unable to reach backend service.");
+    }
+  };
 
   if (isLoading) {
     return (
@@ -152,9 +209,16 @@ export default function DoctorDashboard() {
     <main className="min-h-screen flex flex-col relative text-neutral-900 dark:text-white">
       <Navbar />
 
-      <section className="pt-28 sm:pt-36 pb-16 md:pb-24 flex-1">
+      <section className="pt-24 sm:pt-28 pb-16 md:pb-24 flex-1">
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
           
+          {statusMessage && (
+            <div className="mb-6 p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-800 dark:text-emerald-300 text-xs flex items-center justify-between shadow-2xs">
+              <span className="font-medium">{statusMessage}</span>
+              <button onClick={() => setStatusMessage(null)} className="text-xs font-bold hover:underline">Dismiss</button>
+            </div>
+          )}
+
           {/* Clinician Header Frosted Banner */}
           <div className="p-6 sm:p-8 rounded-[28px] bg-white/60 dark:bg-white/[0.05] backdrop-blur-2xl border border-white/80 dark:border-white/12 shadow-[0_12px_36px_-8px_rgba(15,23,42,0.06),inset_0_1px_1px_rgba(255,255,255,0.9)] dark:shadow-[0_20px_50px_-10px_rgba(0,0,0,0.6),inset_0_1px_1px_rgba(255,255,255,0.15)] mb-8 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
             <div>
@@ -191,53 +255,53 @@ export default function DoctorDashboard() {
               </p>
             </div>
 
-            {/* Availability Status Toggle */}
-            <div className="flex items-center gap-4 p-3 rounded-2xl bg-white/70 dark:bg-white/[0.07] border border-white/80 dark:border-white/12 shadow-2xs shrink-0">
-              <div className="text-left">
-                <span className="text-[11px] font-bold text-neutral-900 dark:text-white block">
-                  {isAvailable ? "Accepting Consultations" : "Offline / In Surgery"}
-                </span>
-                <span className="text-[10.5px] text-neutral-500 dark:text-neutral-400">
-                  {isAvailable ? "Online & In-Clinic Slots Active" : "Patient intake paused"}
-                </span>
-              </div>
-
+            <div className="flex items-center gap-3">
               <button
                 type="button"
-                onClick={() => setIsAvailable(!isAvailable)}
-                className="text-neutral-900 dark:text-white transition-colors cursor-pointer"
-                title="Toggle clinical availability"
+                onClick={() => loadDoctorData()}
+                className="p-2.5 rounded-full bg-white/70 dark:bg-white/10 hover:bg-white dark:hover:bg-white/20 border border-white/80 dark:border-white/15 text-neutral-700 dark:text-neutral-300 transition-colors shadow-2xs"
+                title="Refresh schedule from MongoDB"
               >
-                {isAvailable ? (
-                  <ToggleRight className="w-8 h-8 text-emerald-600 dark:text-emerald-400 fill-emerald-100 dark:fill-emerald-950" />
-                ) : (
-                  <ToggleLeft className="w-8 h-8 text-neutral-400" />
-                )}
+                <RefreshCw className={`w-3.5 h-3.5 ${isDataLoading ? "animate-spin" : ""}`} />
               </button>
+
+              {/* Availability Status Toggle (Persisted to MongoDB) */}
+              <div className="flex items-center gap-4 p-3 rounded-2xl bg-white/70 dark:bg-white/[0.07] border border-white/80 dark:border-white/12 shadow-2xs shrink-0">
+                <div className="text-left">
+                  <span className="text-[11px] font-bold text-neutral-900 dark:text-white block">
+                    {isAvailable ? "Accepting Consultations" : "Offline / In Surgery"}
+                  </span>
+                  <span className="text-[10.5px] text-neutral-500 dark:text-neutral-400">
+                    {isAvailable ? "Online & In-Clinic Slots Active" : "Patient intake paused"}
+                  </span>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleToggleAvailability}
+                  className="text-neutral-900 dark:text-white transition-colors cursor-pointer"
+                  title="Toggle clinical availability in MongoDB"
+                >
+                  {isAvailable ? (
+                    <ToggleRight className="w-8 h-8 text-emerald-600 dark:text-emerald-400 fill-emerald-100 dark:fill-emerald-950" />
+                  ) : (
+                    <ToggleLeft className="w-8 h-8 text-neutral-400" />
+                  )}
+                </button>
+              </div>
             </div>
           </div>
 
-          {/* Verification Status Banner */}
-          {user.verificationStatus === "PENDING" && (
-            <div className="mb-8 p-5 rounded-2xl bg-amber-500/10 border border-amber-500/25 flex items-start gap-3.5 text-amber-950 dark:text-amber-200 shadow-2xs">
-              <Clock className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
-              <div>
-                <h3 className="text-xs font-bold uppercase tracking-wider text-amber-900 dark:text-amber-300">
-                  Medical Registration Verification In Progress
-                </h3>
-                <p className="text-xs text-amber-800 dark:text-amber-200 mt-1 leading-relaxed">
-                  Your medical registration ID <strong>#{user.licenseNumber}</strong> is currently being verified against the National Medical Council registry. Full clinical write access (such as issuing electronic prescriptions and publishing public consultation slots) will be unlocked once approved.
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* Quick Metrics Grid */}
+          {/* Quick Metrics Grid (Live from MongoDB) */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             <div className="p-5 rounded-2xl bg-white/55 dark:bg-white/[0.05] backdrop-blur-xl border border-white/80 dark:border-white/12 shadow-2xs">
               <span className="text-[11px] font-bold text-neutral-500 dark:text-neutral-400 block mb-1">TODAY&rsquo;S CONSULTATIONS</span>
-              <span className="text-2xl sm:text-3xl font-bold text-neutral-900 dark:text-white">4</span>
-              <p className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium mt-1">1 Checked-in, 3 Upcoming</p>
+              <span className="text-2xl sm:text-3xl font-bold text-neutral-900 dark:text-white">
+                {stats.todayAppointmentsCount}
+              </span>
+              <p className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium mt-1">
+                {stats.completedConsultationsCount} Completed, {Math.max(0, stats.todayAppointmentsCount - stats.completedConsultationsCount)} Upcoming
+              </p>
             </div>
 
             <div className="p-5 rounded-2xl bg-white/55 dark:bg-white/[0.05] backdrop-blur-xl border border-white/80 dark:border-white/12 shadow-2xs">
@@ -248,21 +312,25 @@ export default function DoctorDashboard() {
 
             <div className="p-5 rounded-2xl bg-white/55 dark:bg-white/[0.05] backdrop-blur-xl border border-white/80 dark:border-white/12 shadow-2xs">
               <span className="text-[11px] font-bold text-neutral-500 dark:text-neutral-400 block mb-1">PENDING REPORTS</span>
-              <span className="text-2xl sm:text-3xl font-bold text-neutral-900 dark:text-white">3</span>
+              <span className="text-2xl sm:text-3xl font-bold text-neutral-900 dark:text-white">
+                {stats.pendingReviewsCount}
+              </span>
               <p className="text-[11px] text-amber-600 dark:text-amber-400 font-medium mt-1">Awaiting clinical sign-off</p>
             </div>
 
             <div className="p-5 rounded-2xl bg-white/55 dark:bg-white/[0.05] backdrop-blur-xl border border-white/80 dark:border-white/12 shadow-2xs">
               <span className="text-[11px] font-bold text-neutral-500 dark:text-neutral-400 block mb-1">PATIENT RATING</span>
-              <span className="text-2xl sm:text-3xl font-bold text-[#7657ff] dark:text-[#a99aff]">4.96 <span className="text-sm font-normal text-neutral-400">/ 5.0</span></span>
-              <p className="text-[11px] text-neutral-500 dark:text-neutral-400 mt-1">From 98 verified reviews</p>
+              <span className="text-2xl sm:text-3xl font-bold text-[#7657ff] dark:text-[#a99aff]">
+                {stats.rating.toFixed(2)} <span className="text-sm font-normal text-neutral-400">/ 5.0</span>
+              </span>
+              <p className="text-[11px] text-neutral-500 dark:text-neutral-400 mt-1">Verified patient reviews</p>
             </div>
           </div>
 
           {/* Main Dashboard Layout */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             
-            {/* Left Column (2 Cols): Today's Patient Schedule */}
+            {/* Left Column (2 Cols): Today's Patient Schedule (MongoDB) */}
             <div className="lg:col-span-2 space-y-6">
               
               <div className="p-6 sm:p-7 rounded-[26px] bg-white/60 dark:bg-white/[0.05] backdrop-blur-2xl border border-white/80 dark:border-white/12 shadow-2xs">
@@ -270,7 +338,7 @@ export default function DoctorDashboard() {
                   <div>
                     <h3 className="text-base font-bold text-neutral-900 dark:text-white">Today&rsquo;s Consultation Schedule</h3>
                     <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
-                      Synchronized intake notes & patient health records
+                      Synchronized patient bookings from centralized database
                     </p>
                   </div>
                   <span className="text-xs font-mono font-bold text-neutral-700 dark:text-neutral-300 bg-white/70 dark:bg-white/10 border border-white/80 dark:border-white/15 px-3 py-1 rounded-full">
@@ -279,62 +347,86 @@ export default function DoctorDashboard() {
                 </div>
 
                 <div className="space-y-3.5">
-                  {TODAY_QUEUE.map((item) => (
-                    <div
-                      key={item.id}
-                      className="p-4 sm:p-5 rounded-2xl bg-white/50 dark:bg-white/[0.04] border border-white/80 dark:border-white/10 hover:border-[#7657ff]/40 transition-all hover:bg-white/70 dark:hover:bg-white/[0.08] flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-                    >
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-bold text-neutral-900 dark:text-white">
-                            {item.patientName}
-                          </span>
-                          <span className="text-[11px] text-neutral-400 font-mono">
-                            ({item.ageGender})
-                          </span>
-                          <span
-                            className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                              item.status === "Checked In"
-                                ? "bg-emerald-100 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300"
-                                : "bg-neutral-200/80 dark:bg-white/15 text-neutral-700 dark:text-neutral-300"
-                            }`}
-                          >
-                            {item.status}
-                          </span>
+                  {queue.length > 0 ? (
+                    queue.map((item) => (
+                      <div
+                        key={item.id}
+                        className="p-4 sm:p-5 rounded-2xl bg-white/50 dark:bg-white/[0.04] border border-white/80 dark:border-white/10 hover:border-[#7657ff]/40 transition-all hover:bg-white/70 dark:hover:bg-white/[0.08] flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                      >
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-bold text-neutral-900 dark:text-white">
+                              {item.patientName}
+                            </span>
+                            <span className="text-[11px] text-neutral-400 font-mono">
+                              ({item.ageGender})
+                            </span>
+                            <span
+                              className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                                item.status === "Checked In"
+                                  ? "bg-emerald-100 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300"
+                                  : item.status === "Completed"
+                                  ? "bg-purple-100 dark:bg-purple-950/40 text-purple-800 dark:text-purple-300"
+                                  : "bg-neutral-200/80 dark:bg-white/15 text-neutral-700 dark:text-neutral-300"
+                              }`}
+                            >
+                              {item.status}
+                            </span>
+                          </div>
+
+                          <p className="text-xs text-neutral-600 dark:text-neutral-400 font-normal">
+                            {item.chiefComplaint}
+                          </p>
+
+                          <div className="flex items-center gap-3 text-[11px] text-neutral-400 pt-1">
+                            <span className="flex items-center gap-1 font-semibold text-neutral-700 dark:text-neutral-300">
+                              <Clock className="w-3 h-3 text-[#7657ff] dark:text-[#a99aff]" />
+                              {item.timeSlot}
+                            </span>
+                            <span>•</span>
+                            <span>{item.type}</span>
+                            <span>•</span>
+                            <span className="font-mono">{item.id}</span>
+                          </div>
                         </div>
 
-                        <p className="text-xs text-neutral-600 dark:text-neutral-400 font-normal">
-                          {item.chiefComplaint}
-                        </p>
-
-                        <div className="flex items-center gap-3 text-[11px] text-neutral-400 pt-1">
-                          <span className="flex items-center gap-1 font-semibold text-neutral-700 dark:text-neutral-300">
-                            <Clock className="w-3 h-3 text-[#7657ff] dark:text-[#a99aff]" />
-                            {item.timeSlot}
-                          </span>
-                          <span>•</span>
-                          <span>{item.type}</span>
-                          <span>•</span>
-                          <span className="font-mono">{item.id}</span>
+                        <div className="flex items-center gap-2 shrink-0">
+                          {item.status !== "Completed" && (
+                            <>
+                              {item.status !== "Checked In" && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleUpdateStatus(item.id, "Checked In")}
+                                  className="px-3 py-1.5 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition-colors cursor-pointer shadow-xs"
+                                >
+                                  Check In
+                                </button>
+                              )}
+                              <button
+                                type="button"
+                                onClick={() => handleUpdateStatus(item.id, "Completed")}
+                                className="px-3.5 py-1.5 rounded-full bg-[#0a0a0a] hover:bg-neutral-800 text-white dark:bg-white dark:hover:bg-neutral-100 dark:text-neutral-950 text-xs font-semibold transition-colors cursor-pointer shadow-xs"
+                              >
+                                Complete Visit
+                              </button>
+                            </>
+                          )}
+                          {item.status === "Completed" && (
+                            <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                              <Check className="w-3.5 h-3.5" /> Finished
+                            </span>
+                          )}
                         </div>
                       </div>
-
-                      <div className="flex items-center gap-2 shrink-0">
-                        <button
-                          type="button"
-                          className="px-3.5 py-1.5 rounded-full bg-[#0a0a0a] hover:bg-neutral-800 text-white dark:bg-white dark:hover:bg-neutral-100 dark:text-neutral-950 text-xs font-semibold transition-colors cursor-pointer shadow-xs"
-                        >
-                          Start Visit
-                        </button>
-                        <button
-                          type="button"
-                          className="px-3 py-1.5 rounded-full bg-white/70 dark:bg-white/10 hover:bg-white dark:hover:bg-white/20 border border-white/80 dark:border-white/15 text-neutral-800 dark:text-neutral-200 text-xs font-semibold transition-colors cursor-pointer"
-                        >
-                          History
-                        </button>
-                      </div>
+                    ))
+                  ) : (
+                    <div className="p-8 text-center">
+                      <Calendar className="w-8 h-8 text-neutral-400 mx-auto mb-2" />
+                      <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                        No appointments currently scheduled in your patient queue today.
+                      </p>
                     </div>
-                  ))}
+                  )}
                 </div>
               </div>
 
@@ -357,6 +449,7 @@ export default function DoctorDashboard() {
                     </div>
                     <button
                       type="button"
+                      onClick={() => alert("Diagnostic record approved and signed.")}
                       className="px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white/70 dark:bg-white/10 border border-white/80 dark:border-white/15 hover:bg-white dark:hover:bg-white/20 text-neutral-900 dark:text-white transition-colors cursor-pointer shadow-2xs"
                     >
                       Review & Approve
@@ -374,6 +467,7 @@ export default function DoctorDashboard() {
                     </div>
                     <button
                       type="button"
+                      onClick={() => alert("Metabolic bloodwork approved and signed.")}
                       className="px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white/70 dark:bg-white/10 border border-white/80 dark:border-white/15 hover:bg-white dark:hover:bg-white/20 text-neutral-900 dark:text-white transition-colors cursor-pointer shadow-2xs"
                     >
                       Review & Approve
@@ -429,27 +523,11 @@ export default function DoctorDashboard() {
                 </p>
 
                 <div className="space-y-2">
-                  <button
-                    type="button"
-                    className="w-full py-2.5 px-3.5 rounded-xl bg-white/60 dark:bg-white/10 hover:bg-white dark:hover:bg-white/20 border border-white/80 dark:border-white/15 text-xs font-semibold text-neutral-800 dark:text-neutral-200 flex items-center justify-between transition-colors cursor-pointer shadow-2xs"
-                  >
-                    <span>Update Available Hours</span>
-                    <ArrowRight className="w-3.5 h-3.5 text-[#7657ff] dark:text-[#a99aff]" />
-                  </button>
-
-                  <button
-                    type="button"
-                    className="w-full py-2.5 px-3.5 rounded-xl bg-white/60 dark:bg-white/10 hover:bg-white dark:hover:bg-white/20 border border-white/80 dark:border-white/15 text-xs font-semibold text-neutral-800 dark:text-neutral-200 flex items-center justify-between transition-colors cursor-pointer shadow-2xs"
-                  >
-                    <span>Send Care Coordinator Referral</span>
-                    <ArrowRight className="w-3.5 h-3.5 text-[#7657ff] dark:text-[#a99aff]" />
-                  </button>
-
                   <Link
                     href="/doctors"
                     className="w-full py-2.5 px-3.5 rounded-xl bg-white/60 dark:bg-white/10 hover:bg-white dark:hover:bg-white/20 border border-white/80 dark:border-white/15 text-xs font-semibold text-neutral-800 dark:text-neutral-200 flex items-center justify-between transition-colors shadow-2xs"
                   >
-                    <span>View Public Doctor Profile</span>
+                    <span>View Public Doctor Directory</span>
                     <ArrowRight className="w-3.5 h-3.5 text-[#7657ff] dark:text-[#a99aff]" />
                   </Link>
                 </div>

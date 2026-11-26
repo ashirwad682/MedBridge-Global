@@ -16,7 +16,7 @@
     "@medbridge/constants": "*",
     "@medbridge/validation": "*",
     "@medbridge/api": "*",
-    "@types/bcryptjs": "^2.4.6",
+    "@types/bcryptjs": "^3.0.0",
     "@types/jsonwebtoken": "^9.0.10",
     "bcryptjs": "^3.0.3",
     "framer-motion": "^14.9.0",

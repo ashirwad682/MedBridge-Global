@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 import { connectToDatabase } from "@/lib/db/mongodb";
 import { User, PatientProfile } from "@/lib/models";
 import { patientRegisterSchema } from "@/lib/auth/validation";
-import { setSessionCookie } from "@/lib/auth/session";
+import { setSessionCookie, signToken } from "@/lib/auth/session";
 import { checkRateLimit } from "@/lib/auth/rate-limit";
 import { logAuditEvent } from "@/lib/auth/audit";
 
@@ -71,13 +71,15 @@ export async function POST(req: NextRequest) {
       userId: newUser._id,
     });
 
-    // 8. Issue authenticated session
-    await setSessionCookie({
+    // 8. Issue authenticated session and JWT Bearer token
+    const sessionPayload = {
       userId: newUser._id.toString(),
       email: newUser.email,
       role: newUser.role,
       fullName: newUser.fullName,
-    });
+    };
+    const token = signToken(sessionPayload);
+    await setSessionCookie(sessionPayload);
 
     await logAuditEvent({
       userId: newUser._id,
@@ -98,6 +100,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       {
         success: true,
+        token,
         user: {
           id: newUser._id.toString(),
           name: newUser.fullName,

@@ -66,7 +66,24 @@ export const doctorController = {
   getSpecialties: async (_req: Request, res: Response): Promise<void> => {
     try {
       const specialties = await Specialty.find().sort({ name: 1 }).lean();
-      res.json({ success: true, count: specialties.length, specialties });
+
+      // Dynamically calculate doctor counts from DoctorProfile collection
+      const counts = await DoctorProfile.aggregate([
+        { $match: { verificationStatus: "VERIFIED" } },
+        { $group: { _id: "$specialtyId", count: { $sum: 1 } } },
+      ]);
+
+      const countMap: Record<string, number> = {};
+      counts.forEach((c: any) => {
+        countMap[c._id] = c.count;
+      });
+
+      const enriched = specialties.map((s: any) => ({
+        ...s,
+        doctorCount: countMap[s.specialtyId] ?? s.doctorCount ?? 0,
+      }));
+
+      res.json({ success: true, count: enriched.length, specialties: enriched });
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Error retrieving specialties";
       res.status(500).json({ success: false, error: msg });

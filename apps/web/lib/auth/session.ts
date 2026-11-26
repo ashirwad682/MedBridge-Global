@@ -1,4 +1,4 @@
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import jwt from "jsonwebtoken";
 import { getEnv } from "@/lib/db/env";
 import { connectToDatabase } from "@/lib/db/mongodb";
@@ -68,6 +68,16 @@ export async function clearSessionCookie(): Promise<void> {
 
 export async function getSession(): Promise<SessionPayload | null> {
   try {
+    // 1. Check Authorization Bearer header first
+    const reqHeaders = await headers();
+    const authHeader = reqHeaders.get("authorization");
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      const bearerToken = authHeader.substring(7).trim();
+      const payload = verifyToken(bearerToken);
+      if (payload) return payload;
+    }
+
+    // 2. Check HTTP-only session cookie
     const cookieStore = await cookies();
     const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
     if (!token) return null;

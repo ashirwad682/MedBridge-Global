@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 import { connectToDatabase } from "@/lib/db/mongodb";
 import { User, DoctorProfile } from "@/lib/models";
 import { loginSchema } from "@/lib/auth/validation";
-import { setSessionCookie } from "@/lib/auth/session";
+import { setSessionCookie, signToken } from "@/lib/auth/session";
 import { checkRateLimit } from "@/lib/auth/rate-limit";
 import { logAuditEvent } from "@/lib/auth/audit";
 
@@ -131,13 +131,15 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 10. Issue secure HTTP-only session cookie
-    await setSessionCookie({
+    // 10. Issue secure HTTP-only session cookie and JWT Bearer token
+    const sessionPayload = {
       userId: user._id.toString(),
       email: user.email,
       role: user.role,
       fullName: user.fullName,
-    });
+    };
+    const token = signToken(sessionPayload);
+    await setSessionCookie(sessionPayload);
 
     await logAuditEvent({
       userId: user._id,
@@ -157,6 +159,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
+      token,
       user: {
         id: user._id.toString(),
         name: user.fullName,

@@ -21,8 +21,14 @@ export async function connectToDatabase(): Promise<typeof mongoose> {
   const env = getEnv();
   const uri = env.MONGODB_URI;
 
-  if (cached.conn) {
+  if (cached.conn && cached.conn.connection.readyState === 1) {
     return cached.conn;
+  }
+
+  // If connection is in a non-connected state, reset cache
+  if (cached.conn && cached.conn.connection.readyState !== 1) {
+    cached.conn = null;
+    cached.promise = null;
   }
 
   if (!cached.promise) {

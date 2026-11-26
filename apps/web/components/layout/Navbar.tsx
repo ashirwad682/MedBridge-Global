@@ -73,7 +73,7 @@ export default function Navbar() {
       return;
     }
 
-    const sectionIds = ["hero", "services", "specialties", "why-us", "about", "appointment", "contact"];
+    const sectionIds = ["hero", "services", "specialties", "about", "how-it-works", "appointment", "contact"];
     const handleScrollSpy = () => {
       const scrollPosition = window.scrollY + 140;
       for (let i = sectionIds.length - 1; i >= 0; i--) {

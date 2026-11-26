@@ -77,13 +77,15 @@ export default function BenefitsSection() {
   };
 
   return (
-    <section id="why-us" className="w-full py-16 md:py-24 relative overflow-hidden scroll-mt-24 sm:scroll-mt-28">
+    <section id="about" className="w-full py-16 md:py-24 relative overflow-hidden scroll-mt-24 sm:scroll-mt-28">
+      {/* Compatibility anchor for any legacy #why-us references */}
+      <span id="why-us" className="sr-only" aria-hidden="true" />
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* 1. Header with Trust Indicators */}
         <div className="text-center max-w-2xl mx-auto mb-12 md:mb-16">
           <span className="text-[11px] font-bold tracking-[0.18em] uppercase text-[#7657ff] dark:text-[#a99aff] mb-2.5 block">
-            THE MEDBRIDGE ADVANTAGE
+            ABOUT MEDBRIDGE GLOBAL
           </span>
           <h2 className="text-2xl sm:text-3xl md:text-[38px] font-bold tracking-tight text-neutral-900 dark:text-white leading-tight">
             Why Patients Choose MedBridge Global

@@ -61,7 +61,7 @@ export const SITE_CONFIG = {
     { label: "Specialties", href: "/#specialties" },
     { label: "Doctors", href: "/doctors" },
     { label: "Services", href: "/#services" },
-    { label: "About", href: "/#why-us" },
+    { label: "About", href: "/#about" },
     { label: "Contact", href: "/#contact" },
   ] as NavItem[],
 
@@ -271,8 +271,8 @@ export const SITE_CONFIG = {
       {
         title: "Organization",
         links: [
-          { label: "About MedBridge", href: "#about" },
-          { label: "Clinical Standards", href: "#why-us" },
+          { label: "About MedBridge", href: "/#about" },
+          { label: "Clinical Standards", href: "/#about" },
           { label: "Careers", href: "#" },
           { label: "Contact Us", href: "#contact" },
         ],

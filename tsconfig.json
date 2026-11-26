@@ -1,0 +1,35 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "baseUrl": ".",
+    "paths": {
+      "@medbridge/types": ["packages/types/src"],
+      "@medbridge/types/*": ["packages/types/src/*"],
+      "@medbridge/constants": ["packages/constants/src"],
+      "@medbridge/constants/*": ["packages/constants/src/*"],
+      "@medbridge/validation": ["packages/validation/src"],
+      "@medbridge/validation/*": ["packages/validation/src/*"],
+      "@medbridge/api": ["packages/api/src"],
+      "@medbridge/api/*": ["packages/api/src/*"],
+      "@medbridge/config": ["packages/config/src"],
+      "@medbridge/config/*": ["packages/config/src/*"]
+    }
+  },
+  "include": [
+    "packages/**/*.ts",
+    "packages/**/*.tsx",
+    "backend/**/*.ts"
+  ],
+  "exclude": ["node_modules", "apps"]
+}

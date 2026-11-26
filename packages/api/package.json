@@ -1,0 +1,12 @@
+{
+  "name": "@medbridge/api",
+  "version": "0.1.0",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "dependencies": {
+    "@medbridge/types": "*",
+    "@medbridge/constants": "*",
+    "@medbridge/config": "*"
+  }
+}
+

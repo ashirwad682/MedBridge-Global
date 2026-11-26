@@ -32,7 +32,7 @@ jobs:
           cache: "npm"
 
       - name: Install Workspace Dependencies
-        run: npm ci
+        run: npm ci || npm install --legacy-peer-deps
 
       - name: Run Secret Leak Scanning Script
         run: npm run security:check

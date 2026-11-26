@@ -34,7 +34,7 @@ export default function DoctorsDirectoryPage() {
       <Navbar />
 
       {/* Directory Hero Header */}
-      <section id="doctors" className="pt-28 sm:pt-32 pb-12 sm:pb-16 relative overflow-hidden">
+      <section id="doctors" className="pt-28 sm:pt-32 pb-12 sm:pb-16 relative overflow-hidden scroll-mt-24 sm:scroll-mt-28">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-2xl">
             <span className="text-[11px] font-bold tracking-[0.16em] uppercase text-[#7657ff] dark:text-[#a99aff] block mb-2">

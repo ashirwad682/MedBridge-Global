@@ -279,10 +279,10 @@ export const SITE_CONFIG = {
       {
         title: "Compliance & Trust",
         links: [
-          { label: "Privacy Policy", href: "#" },
-          { label: "Terms of Service", href: "#" },
-          { label: "HIPAA & Data Security", href: "#" },
-          { label: "Patient Rights", href: "#" },
+          { label: "Privacy Policy", href: "/privacy-policy" },
+          { label: "Terms of Service", href: "/terms-of-service" },
+          { label: "HIPAA & Data Security", href: "/privacy-policy#compliance" },
+          { label: "Patient Rights", href: "/privacy-policy#user-rights" },
         ],
       },
     ],

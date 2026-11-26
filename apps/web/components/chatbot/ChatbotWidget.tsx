@@ -47,25 +47,33 @@ export default function ChatbotWidget() {
             </div>
           )}
 
-          {/* Circular Floating Button with User's AI Logo */}
+          {/* Circular Floating Button with Brand Emblem */}
           <button
             type="button"
             onClick={toggleOpen}
             aria-expanded={isOpen}
             aria-label="Open MedBridge AI Assistant"
-            className="group relative w-14 h-14 sm:w-15 sm:h-15 rounded-full bg-white/60 dark:bg-black/60 backdrop-blur-2xl border border-white/80 dark:border-white/15 flex items-center justify-center transition-all duration-300 shadow-[0_8px_28px_-4px_rgba(118,87,255,0.4),0_4px_16px_rgba(0,0,0,0.18)] hover:shadow-[0_12px_36px_-4px_rgba(118,87,255,0.55)] hover:scale-105 active:scale-95 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-purple-500 p-0.5"
+            className="group relative w-14 h-14 sm:w-15 sm:h-15 rounded-full bg-white/75 dark:bg-[#0c0f1c]/80 backdrop-blur-2xl border border-white/80 dark:border-white/15 flex items-center justify-center transition-all duration-300 shadow-[0_8px_28px_-4px_rgba(118,87,255,0.4),0_4px_16px_rgba(0,0,0,0.18)] hover:shadow-[0_12px_36px_-4px_rgba(118,87,255,0.55)] hover:scale-105 active:scale-95 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-purple-500 p-0.5"
           >
             {/* Soft Luminous Glow Aura */}
             <div className="absolute inset-0 rounded-full bg-[#7657ff]/20 dark:bg-[#7657ff]/30 blur-md group-hover:bg-[#7657ff]/40 transition-all pointer-events-none" />
 
-            <div className="relative w-full h-full flex items-center justify-center">
+            <div className="relative w-full h-full flex items-center justify-center p-2.5">
               <Image
-                src="/images/medbridge-ai-logo.webp"
+                src="/images/medbridge-icon.png"
                 alt="Open MedBridge AI Assistant"
-                width={60}
-                height={60}
+                width={52}
+                height={52}
                 priority
-                className="w-full h-full object-contain filter drop-shadow-[0_2px_8px_rgba(147,51,234,0.4)]"
+                className="w-full h-full object-contain filter drop-shadow-[0_2px_6px_rgba(0,0,0,0.15)] dark:hidden"
+              />
+              <Image
+                src="/images/medbridge-icon-white.png"
+                alt="Open MedBridge AI Assistant"
+                width={52}
+                height={52}
+                priority
+                className="w-full h-full object-contain filter drop-shadow-[0_2px_8px_rgba(147,51,234,0.5)] hidden dark:block"
               />
             </div>
           </button>

@@ -99,13 +99,20 @@ export default function ChatMessage({
               <AlertTriangle className="w-3.5 h-3.5" />
             </div>
           ) : (
-            <div className="w-6 h-6 rounded-full overflow-hidden shadow-2xs flex items-center justify-center bg-[#0a0a0a]">
+            <div className="w-6 h-6 rounded-full overflow-hidden shadow-2xs flex items-center justify-center bg-neutral-100 dark:bg-white/10 p-0.5 border border-black/5 dark:border-white/10">
               <Image
-                src="/images/medbridge-ai-logo.webp"
+                src="/images/medbridge-icon.png"
                 alt="MedBridge AI"
-                width={24}
-                height={24}
-                className="w-full h-full object-contain"
+                width={20}
+                height={20}
+                className="w-full h-full object-contain dark:hidden"
+              />
+              <Image
+                src="/images/medbridge-icon-white.png"
+                alt="MedBridge AI"
+                width={20}
+                height={20}
+                className="w-full h-full object-contain hidden dark:block"
               />
             </div>
           )}

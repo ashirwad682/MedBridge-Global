@@ -15,13 +15,22 @@ export default function MedicalAIOrb({
   if (size === "sm") {
     return (
       <div className={`relative flex items-center justify-center shrink-0 ${className}`}>
-        <Image
-          src="/images/medbridge-ai-logo.webp"
-          alt="MedBridge AI Logo"
-          width={24}
-          height={24}
-          className="w-6 h-6 rounded-full object-contain"
-        />
+        <div className="w-6 h-6 rounded-full bg-neutral-100 dark:bg-white/10 flex items-center justify-center p-0.5">
+          <Image
+            src="/images/medbridge-icon.png"
+            alt="MedBridge AI Logo"
+            width={20}
+            height={20}
+            className="w-full h-full object-contain dark:hidden"
+          />
+          <Image
+            src="/images/medbridge-icon-white.png"
+            alt="MedBridge AI Logo"
+            width={20}
+            height={20}
+            className="w-full h-full object-contain hidden dark:block"
+          />
+        </div>
       </div>
     );
   }
@@ -30,13 +39,22 @@ export default function MedicalAIOrb({
     return (
       <div className={`relative flex items-center justify-center shrink-0 ${className}`}>
         <div className="absolute w-12 h-12 rounded-full bg-purple-500/25 blur-md animate-pulse" />
-        <Image
-          src="/images/medbridge-ai-logo.webp"
-          alt="MedBridge AI Logo"
-          width={40}
-          height={40}
-          className="relative w-10 h-10 rounded-full object-contain"
-        />
+        <div className="relative w-10 h-10 rounded-full bg-white/80 dark:bg-[#121624]/85 backdrop-blur-md border border-neutral-200/60 dark:border-white/10 flex items-center justify-center p-2 shadow-sm">
+          <Image
+            src="/images/medbridge-icon.png"
+            alt="MedBridge AI Logo"
+            width={32}
+            height={32}
+            className="w-full h-full object-contain dark:hidden"
+          />
+          <Image
+            src="/images/medbridge-icon-white.png"
+            alt="MedBridge AI Logo"
+            width={32}
+            height={32}
+            className="w-full h-full object-contain hidden dark:block"
+          />
+        </div>
       </div>
     );
   }
@@ -65,15 +83,23 @@ export default function MedicalAIOrb({
         }}
       />
 
-      {/* Main Core AI Logo Image */}
-      <div className="relative w-20 h-20 sm:w-22 sm:h-22 rounded-full transition-transform duration-500 ease-out hover:scale-105 flex items-center justify-center">
+      {/* Main Core AI Logo Image with rounded glassmorphic container */}
+      <div className="relative w-20 h-20 sm:w-22 sm:h-22 rounded-full bg-white/85 dark:bg-[#0f1322]/90 backdrop-blur-2xl border border-neutral-200/70 dark:border-white/15 flex items-center justify-center p-4 transition-transform duration-500 ease-out hover:scale-105 shadow-[0_8px_24px_-4px_rgba(147,51,234,0.35)]">
         <Image
-          src="/images/medbridge-ai-logo.webp"
+          src="/images/medbridge-icon.png"
           alt="MedBridge AI Healthcare Assistant"
-          width={96}
-          height={96}
+          width={80}
+          height={80}
           priority
-          className="w-full h-full object-contain filter drop-shadow-[0_8px_20px_rgba(147,51,234,0.35)]"
+          className="w-full h-full object-contain dark:hidden"
+        />
+        <Image
+          src="/images/medbridge-icon-white.png"
+          alt="MedBridge AI Healthcare Assistant"
+          width={80}
+          height={80}
+          priority
+          className="w-full h-full object-contain hidden dark:block"
         />
       </div>
     </div>

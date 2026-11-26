@@ -17,8 +17,7 @@ export function getEnv(): Env {
 
   const parsed = envSchema.safeParse({
     MONGODB_URI:
-      process.env.MONGODB_URI ||
-      "mongodb+srv://ashirwad682_db_user:QyvSLhPDx3uZWHe1@omnicareglobal.xzijral.mongodb.net/?retryWrites=true&w=majority",
+      process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/medbridge",
     MONGODB_DB_NAME: process.env.MONGODB_DB_NAME || "medbridge",
     AUTH_SECRET:
       process.env.AUTH_SECRET ||

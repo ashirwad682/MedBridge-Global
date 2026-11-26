@@ -1,3 +1,12 @@
+/**
+ * MedBridge Global - Connected Healthcare Platform
+ * Copyright (c) 2026 Ashirwad Kumar. All Rights Reserved.
+ * Proprietary and Confidential.
+ *
+ * Unauthorized copying, distribution, or modification of this file,
+ * via any medium, is strictly prohibited.
+ */
+
 export const ENV_CONFIG = {
   // Mobile fallback base URL: on Android emulator 10.0.2.2, iOS simulator localhost, or explicit LAN IP
   DEFAULT_API_URL: "http://localhost:5001",

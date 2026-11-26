@@ -151,9 +151,25 @@ export default function Footer() {
         </div>
 
         {/* Bottom Bar: Compact & Clean */}
-        <div className="pt-6 flex flex-col sm:flex-row items-center justify-between text-[11px] text-neutral-500 dark:text-neutral-400 gap-3">
-          <p>© 2026 MedBridge Global Inc. All rights reserved.</p>
-          <div className="flex items-center gap-4">
+        <div className="pt-6 flex flex-col md:flex-row items-center justify-between text-[11px] text-neutral-500 dark:text-neutral-400 gap-3">
+          <p>© 2026 Ashirwad Kumar. All rights reserved. MedBridge Global is proprietary software.</p>
+          <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
+            <Link href="/copyright" className="hover:text-neutral-900 dark:hover:text-white transition-colors">
+              Copyright
+            </Link>
+            <span>•</span>
+            <Link href="/proprietary-license" className="hover:text-neutral-900 dark:hover:text-white transition-colors">
+              Proprietary License
+            </Link>
+            <span>•</span>
+            <Link href="/intellectual-property" className="hover:text-neutral-900 dark:hover:text-white transition-colors">
+              IP Policy
+            </Link>
+            <span>•</span>
+            <Link href="/unauthorized-usage" className="hover:text-neutral-900 dark:hover:text-white transition-colors">
+              Unauthorized Usage
+            </Link>
+            <span>•</span>
             <Link href="/privacy-policy" className="hover:text-neutral-900 dark:hover:text-white transition-colors">
               Privacy Policy
             </Link>
@@ -162,7 +178,9 @@ export default function Footer() {
               Terms of Service
             </Link>
             <span>•</span>
-            <span className="text-neutral-400 dark:text-neutral-600">Demonstrative Clinical Platform</span>
+            <Link href="/dashboard/admin/repository" className="hover:text-[#7657ff] font-medium transition-colors">
+              Repo Security
+            </Link>
           </div>
         </div>
       </div>

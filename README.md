@@ -143,3 +143,40 @@ Both Web and Mobile support instant demonstration credentials:
 | :--- | :--- | :--- |
 | **Patient** | `patient@medbridge.com` | `password123` |
 | **Doctor** | `doctor@medbridge.com` | `password123` |
+
+---
+
+## 7. Intellectual Property, Copyright & Proprietary License
+
+### Copyright Notice
+**Copyright © 2026 Ashirwad Kumar. All Rights Reserved.**
+
+MedBridge Global, including its source code, architecture, software designs, user interfaces, branding assets, database schemas, and documentation, is the exclusive proprietary intellectual property of **Ashirwad Kumar**.
+
+### Proprietary License Summary
+This repository and all original materials contained within it are licensed under a strict **Proprietary Software License** (see [LICENSE](LICENSE)). 
+
+- **Prohibited Without Prior Written Consent:**
+  - Copying, cloning, mirroring, or reproducing original source code or assets.
+  - Sublicensing, distributing, redistributing, or publishing in public or private repositories.
+  - Creating derivative works, forks, modifications, or commercial adaptations.
+  - Commercial exploitation, resale, hosting as a SaaS/PaaS service, or unauthorized production deployment.
+  - Unauthorized use of the MedBridge name, logo, emblem, or trade dress.
+- **Permitted Use:** Limited to personal, internal academic or technical evaluation on a non-production development workstation.
+- **Inquiries & Commercial Licensing:** Prior written permission must be obtained directly from Ashirwad Kumar (`ashirwadkumar.dev@gmail.com`).
+
+### Third-Party Open Source Attributions
+Underlying open-source runtimes, packages, and frameworks (Next.js, React, React Native, Expo, Tailwind CSS, Express, Mongoose, Zod, and Lucide Icons) remain the property of their respective copyright holders and are utilized under their applicable open-source licenses (MIT, Apache 2.0, ISC, BSD). For detailed third-party attributions, see [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md).
+
+---
+
+## 8. Repository Security & Monitoring System
+
+This repository incorporates security protections and monitoring controls:
+
+- **Code Ownership:** Enforced via [.github/CODEOWNERS](.github/CODEOWNERS) assigning exclusive ownership to `@ashirwad682`.
+- **Contribution Policy:** Enforced via [.github/CONTRIBUTING.md](.github/CONTRIBUTING.md) requiring IP acknowledgment, PR reviews, and sign-offs.
+- **Vulnerability Reporting:** Documented in [SECURITY.md](SECURITY.md).
+- **Automated Dependency Alerts:** Configured via [.github/dependabot.yml](.github/dependabot.yml).
+- **Secret Scanning & Pre-Commit Protection:** Automated script `npm run security:check` prevents accidental credential exposure.
+- **Clone & Traffic Analytics:** Real-time aggregate clone counts, unique cloners, and referring paths monitored via the Admin Repository Security Dashboard with MongoDB snapshot persistence.

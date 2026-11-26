@@ -1,3 +1,12 @@
+/**
+ * MedBridge Global - Connected Healthcare Platform
+ * Copyright (c) 2026 Ashirwad Kumar. All Rights Reserved.
+ * Proprietary and Confidential.
+ *
+ * Unauthorized copying, distribution, or modification of this file,
+ * via any medium, is strictly prohibited.
+ */
+
 import express from "express";
 import cors from "cors";
 import { ENV } from "./config/env";
@@ -8,6 +17,7 @@ import appointmentRoutes from "./routes/appointmentRoutes";
 import contactRoutes from "./routes/contactRoutes";
 import patientRoutes from "./routes/patientRoutes";
 import chatRoutes from "./routes/chatRoutes";
+import repositoryRoutes from "./routes/repositoryRoutes";
 import { doctorController } from "./controllers/doctorController";
 import { doctorProfileController } from "./controllers/doctorProfileController";
 import { authenticate } from "./middleware/auth";
@@ -53,6 +63,7 @@ app.use("/api/appointments", appointmentRoutes);
 app.use("/api/contact", contactRoutes);
 app.use("/api/patient", patientRoutes);
 app.use("/api/chat", chatRoutes);
+app.use("/api/admin/repository", repositoryRoutes);
 
 // 404 handler
 app.use((_req, res) => {

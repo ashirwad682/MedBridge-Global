@@ -1,4 +1,13 @@
 /**
+ * MedBridge Global - Connected Healthcare Platform
+ * Copyright (c) 2026 Ashirwad Kumar. All Rights Reserved.
+ * Proprietary and Confidential.
+ *
+ * Unauthorized copying, distribution, or modification of this file,
+ * via any medium, is strictly prohibited.
+ */
+
+/**
  * Site configuration and data dictionary for MedBridge Global
  */
 
@@ -282,8 +291,10 @@ export const SITE_CONFIG = {
         links: [
           { label: "Privacy Policy", href: "/privacy-policy" },
           { label: "Terms of Service", href: "/terms-of-service" },
-          { label: "HIPAA & Data Security", href: "/privacy-policy#compliance" },
-          { label: "Patient Rights", href: "/privacy-policy#user-rights" },
+          { label: "Copyright Notice", href: "/copyright" },
+          { label: "Proprietary License", href: "/proprietary-license" },
+          { label: "IP Policy", href: "/intellectual-property" },
+          { label: "Unauthorized Usage", href: "/unauthorized-usage" },
         ],
       },
     ],

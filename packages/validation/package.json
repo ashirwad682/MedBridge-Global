@@ -5,6 +5,8 @@
   "types": "./src/index.ts",
   "dependencies": {
     "zod": "^3.23.8 || ^4.0.0"
-  }
+  },
+  "author": "Ashirwad Kumar",
+  "license": "UNLICENSED",
+  "copyright": "Copyright (c) 2026 Ashirwad Kumar. All Rights Reserved."
 }
-

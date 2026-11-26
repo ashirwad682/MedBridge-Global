@@ -1,6 +1,9 @@
 {
   "name": "@medbridge/web",
   "version": "0.1.0",
+  "license": "UNLICENSED",
+  "author": "Ashirwad Kumar",
+  "copyright": "Copyright (c) 2026 Ashirwad Kumar. All Rights Reserved.",
   "private": true,
   "scripts": {
     "dev": "next dev --webpack",

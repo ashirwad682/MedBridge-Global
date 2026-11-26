@@ -17,7 +17,11 @@ export default function DoctorCard({ doctor }: DoctorCardProps) {
   return (
     <div className="group rounded-[26px] bg-white/55 dark:bg-white/[0.05] backdrop-blur-2xl border border-white/80 dark:border-white/12 shadow-[0_12px_36px_-8px_rgba(15,23,42,0.06),inset_0_1px_1px_rgba(255,255,255,0.9)] dark:shadow-[0_20px_50px_-10px_rgba(0,0,0,0.6),inset_0_1px_1px_rgba(255,255,255,0.15)] hover:shadow-xl hover:border-white dark:hover:border-white/20 transition-all duration-300 flex flex-col overflow-hidden">
       {/* Photo & Badge */}
-      <div className="relative w-full aspect-square bg-neutral-100 dark:bg-white/5 overflow-hidden">
+      <Link
+        href={`/doctors/${doctor.id}`}
+        className="relative w-full aspect-square bg-neutral-100 dark:bg-white/5 overflow-hidden block cursor-pointer"
+        aria-label={`View profile and schedule with ${doctor.name}`}
+      >
         <Image
           src={doctor.image}
           alt={doctor.name}
@@ -25,20 +29,20 @@ export default function DoctorCard({ doctor }: DoctorCardProps) {
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
           className="object-cover object-top group-hover:scale-105 transition-transform duration-500 ease-out"
         />
-        <div className="absolute top-3 left-3">
+        <div className="absolute top-3 left-3 pointer-events-none">
           <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-white/80 dark:bg-black/60 backdrop-blur-md text-[11px] font-semibold text-neutral-800 dark:text-neutral-200 border border-white/80 dark:border-white/15 shadow-xs">
             <Star className="w-3 h-3 text-amber-500 fill-amber-500" />
             <span>{doctor.rating}</span>
             <span className="text-neutral-400 font-normal">({doctor.reviewsCount})</span>
           </span>
         </div>
-        <div className="absolute bottom-3 right-3">
+        <div className="absolute bottom-3 right-3 pointer-events-none">
           <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-black/65 dark:bg-white/15 backdrop-blur-md text-[11px] font-medium text-white border border-white/20 shadow-xs">
             <Clock className="w-3 h-3 text-neutral-300" />
             <span>{doctor.experienceYears} yrs exp</span>
           </span>
         </div>
-      </div>
+      </Link>
 
       {/* Doctor Info */}
       <div className="p-5 sm:p-6 flex flex-col flex-1 justify-between">
@@ -46,9 +50,11 @@ export default function DoctorCard({ doctor }: DoctorCardProps) {
           <span className="inline-block text-[11px] font-bold tracking-[0.14em] uppercase text-[#7657ff] dark:text-[#a99aff] mb-1">
             {doctor.specialtyName}
           </span>
-          <h3 className="text-[17px] sm:text-[18px] font-bold text-neutral-900 dark:text-white leading-snug group-hover:text-black dark:group-hover:text-neutral-100 transition-colors">
-            {doctor.name}
-          </h3>
+          <Link href={`/doctors/${doctor.id}`} className="group/name block cursor-pointer">
+            <h3 className="text-[17px] sm:text-[18px] font-bold text-neutral-900 dark:text-white leading-snug group-hover/name:text-[#7657ff] dark:group-hover/name:text-[#a99aff] transition-colors">
+              {doctor.name}
+            </h3>
+          </Link>
           <p className="text-xs text-neutral-600 dark:text-neutral-400 mt-1 font-medium line-clamp-1">
             {doctor.title}
           </p>

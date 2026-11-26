@@ -57,12 +57,12 @@ export const SITE_CONFIG = {
     "Discover connected healthcare services, medical specialists, and modern diagnostic care with MedBridge Global.",
   
   navLinks: [
-    { label: "Home", href: "#hero" },
-    { label: "Specialties", href: "#specialties" },
-    { label: "Doctors", href: "#doctors" },
-    { label: "Services", href: "#services" },
-    { label: "About", href: "#about" },
-    { label: "Contact", href: "#contact" },
+    { label: "Home", href: "/" },
+    { label: "Specialties", href: "/#specialties" },
+    { label: "Doctors", href: "/doctors" },
+    { label: "Services", href: "/#services" },
+    { label: "About", href: "/#why-us" },
+    { label: "Contact", href: "/#contact" },
   ] as NavItem[],
 
   hero: {
@@ -252,10 +252,11 @@ export const SITE_CONFIG = {
       {
         title: "Platform",
         links: [
-          { label: "Overview", href: "#hero" },
-          { label: "Services", href: "#services" },
-          { label: "Specialties", href: "#specialties" },
-          { label: "Patient Portal", href: "#appointment" },
+          { label: "Overview", href: "/" },
+          { label: "Services", href: "/#services" },
+          { label: "Specialties", href: "/#specialties" },
+          { label: "Doctors Directory", href: "/doctors" },
+          { label: "Patient Portal", href: "/appointments" },
         ],
       },
       {

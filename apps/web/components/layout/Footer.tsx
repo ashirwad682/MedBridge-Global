@@ -5,7 +5,7 @@ import { Globe, Shield } from "lucide-react";
 
 export default function Footer() {
   return (
-    <footer id="contact" className="w-full bg-white/40 dark:bg-[#07090f]/70 backdrop-blur-3xl text-neutral-600 dark:text-neutral-400 pt-14 pb-10 border-t border-white/80 dark:border-white/10 transition-colors duration-500">
+    <footer id="contact" className="w-full bg-white/40 dark:bg-[#07090f]/70 backdrop-blur-3xl text-neutral-600 dark:text-neutral-400 pt-14 pb-10 border-t border-white/80 dark:border-white/10 transition-colors duration-500 scroll-mt-24 sm:scroll-mt-28">
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
         {/* 4-Column Balanced Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-8 lg:gap-10 pb-10 border-b border-neutral-200/60 dark:border-white/10">

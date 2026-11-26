@@ -77,7 +77,7 @@ export default function BenefitsSection() {
   };
 
   return (
-    <section id="why-us" className="w-full py-16 md:py-24 relative overflow-hidden">
+    <section id="why-us" className="w-full py-16 md:py-24 relative overflow-hidden scroll-mt-24 sm:scroll-mt-28">
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* 1. Header with Trust Indicators */}

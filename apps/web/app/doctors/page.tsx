@@ -34,7 +34,7 @@ export default function DoctorsDirectoryPage() {
       <Navbar />
 
       {/* Directory Hero Header */}
-      <section id="doctors" className="pt-28 sm:pt-32 pb-12 sm:pb-16 relative overflow-hidden">
+      <section id="doctors" className="pt-24 sm:pt-28 pb-4 sm:pb-6 relative overflow-hidden scroll-mt-24 sm:scroll-mt-28">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-2xl">
             <span className="text-[11px] font-bold tracking-[0.16em] uppercase text-[#7657ff] dark:text-[#a99aff] block mb-2">
@@ -107,10 +107,10 @@ export default function DoctorsDirectoryPage() {
       </section>
 
       {/* Doctor Cards Grid */}
-      <section className="py-12 md:py-20 relative">
+      <section className="pt-2 sm:pt-4 pb-16 md:pb-24 relative">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
           {/* Active Filter Metrics */}
-          <div className="flex items-center justify-between pb-6 mb-8 border-b border-neutral-200/60 dark:border-white/10 text-xs text-neutral-600 dark:text-neutral-400">
+          <div className="flex items-center justify-between pb-4 mb-6 border-b border-neutral-200/60 dark:border-white/10 text-xs text-neutral-600 dark:text-neutral-400">
             <span>
               Showing <strong>{filteredDoctors.length}</strong> verified physician{filteredDoctors.length !== 1 ? "s" : ""}
             </span>

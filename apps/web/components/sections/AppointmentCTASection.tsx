@@ -10,7 +10,7 @@ export default function AppointmentCTASection() {
   const { openBooking } = useBooking();
 
   return (
-    <section id="appointment" className="w-full py-16 md:py-24 relative overflow-hidden">
+    <section id="appointment" className="w-full py-16 md:py-24 relative overflow-hidden scroll-mt-24 sm:scroll-mt-28">
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="rounded-[30px] sm:rounded-[36px] md:rounded-[44px] overflow-hidden border border-white/80 dark:border-white/12 shadow-[0_25px_60px_-15px_rgba(15,23,42,0.06),inset_0_1px_1px_rgba(255,255,255,0.95)] dark:shadow-[0_30px_70px_-15px_rgba(0,0,0,0.7),inset_0_1px_1px_rgba(255,255,255,0.15)] bg-white/55 dark:bg-white/[0.04] backdrop-blur-3xl relative">
           

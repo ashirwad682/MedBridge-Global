@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import { SITE_CONFIG } from "@/lib/site-config";
 import {
   Menu,
@@ -21,12 +22,14 @@ import { useBooking } from "@/components/booking/BookingContext";
 import { useTheme } from "@/components/theme/ThemeProvider";
 
 export default function Navbar() {
+  const pathname = usePathname();
   const { user, openAuthModal, logout } = useAuth();
   const { openBooking } = useBooking();
   const { theme, toggleTheme } = useTheme();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+  const [activeHash, setActiveHash] = useState<string>("");
   const profileDropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -39,6 +42,119 @@ export default function Navbar() {
 
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  // Handle cross-page and on-page hash scroll smoothly
+  useEffect(() => {
+    const handleHashScroll = () => {
+      if (typeof window === "undefined") return;
+      const hash = window.location.hash.replace("#", "");
+      if (!hash) return;
+      setActiveHash(hash);
+      const targetElement = document.getElementById(hash);
+      if (targetElement) {
+        targetElement.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    };
+
+    handleHashScroll();
+    const timer = setTimeout(handleHashScroll, 160);
+
+    window.addEventListener("hashchange", handleHashScroll);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("hashchange", handleHashScroll);
+    };
+  }, [pathname]);
+
+  // ScrollSpy to track active section when browsing on the home page
+  useEffect(() => {
+    if (pathname !== "/") {
+      setActiveHash("");
+      return;
+    }
+
+    const sectionIds = ["hero", "services", "specialties", "why-us", "about", "appointment", "contact"];
+    const handleScrollSpy = () => {
+      const scrollPosition = window.scrollY + 140;
+      for (let i = sectionIds.length - 1; i >= 0; i--) {
+        const id = sectionIds[i];
+        const el = document.getElementById(id);
+        if (el && el.offsetTop <= scrollPosition) {
+          setActiveHash(id === "hero" ? "" : id);
+          break;
+        }
+      }
+    };
+
+    window.addEventListener("scroll", handleScrollSpy, { passive: true });
+    handleScrollSpy();
+    return () => window.removeEventListener("scroll", handleScrollSpy);
+  }, [pathname]);
+
+  // Centralized navigation handler ensuring global reliability across all pages
+  const handleNavClick = (
+    e: React.MouseEvent<HTMLAnchorElement>,
+    href: string
+  ) => {
+    // 1. Direct page route without hash (e.g. "/doctors")
+    if (!href.includes("#")) {
+      if (pathname === href) {
+        e.preventDefault();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+      return;
+    }
+
+    // 2. Anchor on home or current page (e.g. "/#specialties", "/#services", "/#about", "/#contact")
+    const hash = href.split("#")[1];
+
+    // Special case: Footer with id="contact" is present on every single page!
+    if (hash === "contact") {
+      const contactEl = document.getElementById("contact");
+      if (contactEl) {
+        e.preventDefault();
+        contactEl.scrollIntoView({ behavior: "smooth", block: "start" });
+        window.history.pushState(null, "", `#contact`);
+        setActiveHash("contact");
+        return;
+      }
+    }
+
+    // If already on the home page "/"
+    if (pathname === "/") {
+      e.preventDefault();
+      const el = document.getElementById(hash);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
+        window.history.pushState(null, "", `#${hash}`);
+        setActiveHash(hash);
+      } else if (hash === "hero") {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        setActiveHash("");
+      }
+      return;
+    }
+
+    // If on a subpage (e.g., /doctors, /privacy-policy), Next.js Link navigates to "/#...",
+    // and the hash scroll effect above ensures smooth scrolling to the target section upon landing!
+  };
+
+  const isLinkActive = (href: string) => {
+    if (href === "/doctors") {
+      return pathname.startsWith("/doctors");
+    }
+    if (href === "/") {
+      return pathname === "/" && !activeHash;
+    }
+    if (href.startsWith("/#")) {
+      const hash = href.split("#")[1];
+      if (pathname === "/") {
+        if (hash === "about" && (activeHash === "about" || activeHash === "why-us")) return true;
+        return activeHash === hash;
+      }
+    }
+    return false;
+  };
 
   // Close profile dropdown when clicking outside
   useEffect(() => {
@@ -102,32 +218,40 @@ export default function Navbar() {
             />
           </Link>
 
-          {/* Desktop Center Links (Centered horizontally & vertically) */}
-          <ul
-            className={`hidden md:flex items-center font-medium text-neutral-600 dark:text-neutral-300 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 transition-all duration-300 ${
-              isScrolled ? "gap-2.5 lg:gap-4 text-[11.5px] lg:text-[12px]" : "gap-3 lg:gap-4.5 text-[12px] lg:text-[12.5px]"
-            }`}
-          >
-            {SITE_CONFIG.navLinks.map((item) => (
-              <li key={item.label}>
-                <Link
-                  href={item.href}
-                  className="hover:text-neutral-950 dark:hover:text-white px-2.5 py-1 rounded-full hover:bg-white/40 dark:hover:bg-white/10 transition-all duration-200 tracking-normal focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 whitespace-nowrap"
-                >
-                  {item.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
+          {/* Desktop Navigation Links & Action Controls (Equal-spaced flow) */}
+          <div className="hidden md:flex items-center gap-1.5 lg:gap-2">
+            {/* Nav Links */}
+            <ul className="flex items-center gap-1 lg:gap-1.5 font-medium text-neutral-600 dark:text-neutral-300">
+              {SITE_CONFIG.navLinks.map((item) => {
+                const active = isLinkActive(item.href);
+                return (
+                  <li key={item.label}>
+                    <Link
+                      href={item.href}
+                      onClick={(e) => handleNavClick(e, item.href)}
+                      className={`px-3 py-1 rounded-full transition-all duration-200 tracking-normal focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 whitespace-nowrap ${
+                        isScrolled
+                          ? "text-[11.5px] lg:text-[12px] px-2.5 py-1"
+                          : "text-[12px] lg:text-[12.5px] px-3 py-1"
+                      } ${
+                        active
+                          ? "text-neutral-950 dark:text-white font-semibold bg-white/70 dark:bg-white/15 shadow-2xs"
+                          : "text-neutral-600 dark:text-neutral-300 hover:text-neutral-950 dark:hover:text-white hover:bg-white/40 dark:hover:bg-white/10"
+                      }`}
+                    >
+                      {item.label}
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
 
-          {/* Right Action Area */}
-          <div className="hidden md:flex items-center shrink-0 gap-2 sm:gap-2.5">
-            {/* Theme Toggle Button */}
+            {/* Symmetrically Centered Theme Toggle Button */}
             <button
               type="button"
               onClick={toggleTheme}
               aria-label={`Switch to ${theme === "light" ? "dark" : "light"} mode`}
-              className="w-8 h-8 rounded-full bg-white/50 dark:bg-white/10 hover:bg-white/80 dark:hover:bg-white/20 border border-white/70 dark:border-white/15 text-neutral-700 dark:text-neutral-200 flex items-center justify-center transition-all duration-200 shadow-2xs cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
+              className="w-8 h-8 rounded-full bg-white/50 dark:bg-white/10 hover:bg-white/80 dark:hover:bg-white/20 border border-white/70 dark:border-white/15 text-neutral-700 dark:text-neutral-200 flex items-center justify-center transition-all duration-200 shadow-2xs cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 shrink-0 mx-0.5"
             >
               {theme === "light" ? (
                 <Moon className="w-3.5 h-3.5 transition-transform duration-300 hover:-rotate-12" />
@@ -136,14 +260,15 @@ export default function Navbar() {
               )}
             </button>
 
+            {/* Auth Buttons / Profile Dropdown */}
             {!user ? (
-              <>
+              <div className="flex items-center gap-1.5 lg:gap-2">
                 {/* Minimal Log In Text Button */}
                 <button
                   type="button"
                   onClick={() => openAuthModal("login", "patient")}
-                  className={`font-semibold text-neutral-700 dark:text-neutral-200 hover:text-black dark:hover:text-white transition-colors duration-200 cursor-pointer rounded-full hover:bg-white/40 dark:hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 ${
-                    isScrolled ? "text-[11px] px-2.5 py-1.5" : "text-xs px-3 py-1.5"
+                  className={`font-semibold text-neutral-700 dark:text-neutral-200 hover:text-black dark:hover:text-white transition-colors duration-200 cursor-pointer rounded-full hover:bg-white/40 dark:hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 shrink-0 whitespace-nowrap ${
+                    isScrolled ? "text-[11px] px-2.5 py-1" : "text-xs px-3 py-1"
                   }`}
                 >
                   Log In
@@ -153,7 +278,7 @@ export default function Navbar() {
                 <button
                   type="button"
                   onClick={() => openAuthModal("select-role")}
-                  className={`inline-flex items-center justify-center font-semibold rounded-full bg-[#0a0a0a] hover:bg-neutral-800 text-white dark:bg-white dark:hover:bg-neutral-100 dark:text-neutral-950 transition-all duration-200 shadow-sm hover:shadow active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 cursor-pointer whitespace-nowrap ${
+                  className={`inline-flex items-center justify-center font-semibold rounded-full bg-[#0a0a0a] hover:bg-neutral-800 text-white dark:bg-white dark:hover:bg-neutral-100 dark:text-neutral-950 transition-all duration-200 shadow-sm hover:shadow active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 cursor-pointer shrink-0 whitespace-nowrap ${
                     isScrolled
                       ? "text-[11px] px-3.5 py-1.5"
                       : "text-xs px-4 md:px-5 py-2"
@@ -161,10 +286,10 @@ export default function Navbar() {
                 >
                   Get Started
                 </button>
-              </>
+              </div>
             ) : (
               /* Authenticated User Profile Dropdown */
-              <div className="relative" ref={profileDropdownRef}>
+              <div className="relative shrink-0" ref={profileDropdownRef}>
                 <button
                   type="button"
                   onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
@@ -296,18 +421,28 @@ export default function Navbar() {
         {mobileMenuOpen && (
           <div className="md:hidden mt-2 p-5 rounded-[24px] bg-white/80 dark:bg-[#10131c]/85 backdrop-blur-2xl border border-white/80 dark:border-white/15 shadow-[0_20px_50px_-10px_rgba(0,0,0,0.15)] dark:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.7)] transition-all duration-300">
             <ul className="flex flex-col space-y-3 text-[14px] font-medium text-neutral-700 dark:text-neutral-300">
-              {SITE_CONFIG.navLinks.map((item) => (
-                <li key={item.label}>
-                  <Link
-                    href={item.href}
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center justify-between py-2 px-3 rounded-xl hover:bg-white/60 dark:hover:bg-white/10 hover:text-black dark:hover:text-white transition-colors"
-                  >
-                    <span>{item.label}</span>
-                    <ArrowUpRight className="w-4 h-4 text-neutral-400" />
-                  </Link>
-                </li>
-              ))}
+              {SITE_CONFIG.navLinks.map((item) => {
+                const active = isLinkActive(item.href);
+                return (
+                  <li key={item.label}>
+                    <Link
+                      href={item.href}
+                      onClick={(e) => {
+                        setMobileMenuOpen(false);
+                        handleNavClick(e, item.href);
+                      }}
+                      className={`flex items-center justify-between py-2.5 px-3 rounded-xl transition-colors ${
+                        active
+                          ? "bg-purple-500/10 text-[#7657ff] dark:text-[#a99aff] font-semibold"
+                          : "text-neutral-700 dark:text-neutral-300 hover:bg-white/60 dark:hover:bg-white/10 hover:text-black dark:hover:text-white"
+                      }`}
+                    >
+                      <span>{item.label}</span>
+                      <ArrowUpRight className="w-4 h-4 text-neutral-400" />
+                    </Link>
+                  </li>
+                );
+              })}
 
               <li className="pt-2 border-t border-neutral-200/60 dark:border-white/10 flex flex-col gap-2">
                 {!user ? (

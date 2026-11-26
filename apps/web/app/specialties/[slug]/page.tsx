@@ -13,7 +13,10 @@ import AppointmentCTASection from "@/components/sections/AppointmentCTASection";
 import {
   SPECIALTIES_DATA,
   getDoctorsBySpecialty,
+  mapDbDoctorToDoctor,
 } from "@/lib/medical-data";
+import { connectToDatabase } from "@/lib/db/mongodb";
+import { DoctorProfile } from "@/lib/models/DoctorProfile";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -49,7 +52,22 @@ export default async function SpecialtyDetailPage({ params }: PageProps) {
     notFound();
   }
 
-  const doctors = getDoctorsBySpecialty(specialty.id);
+  let doctors = getDoctorsBySpecialty(specialty.id);
+  try {
+    await connectToDatabase();
+    const dbDocs = await DoctorProfile.find({
+      specialtyId: specialty.id,
+      verificationStatus: "VERIFIED",
+    })
+      .sort({ rating: -1, reviewCount: -1 })
+      .lean();
+
+    if (dbDocs && dbDocs.length > 0) {
+      doctors = dbDocs.map(mapDbDoctorToDoctor);
+    }
+  } catch {
+    // Database fallback to statically curated doctors
+  }
 
   return (
     <main className="min-h-screen flex flex-col relative text-neutral-900 dark:text-white">

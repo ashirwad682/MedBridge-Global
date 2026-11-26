@@ -291,10 +291,8 @@ export const SITE_CONFIG = {
         links: [
           { label: "Privacy Policy", href: "/privacy-policy" },
           { label: "Terms of Service", href: "/terms-of-service" },
-          { label: "Copyright Notice", href: "/copyright" },
-          { label: "Proprietary License", href: "/proprietary-license" },
-          { label: "IP Policy", href: "/intellectual-property" },
-          { label: "Unauthorized Usage", href: "/unauthorized-usage" },
+          { label: "HIPAA & Data Security", href: "/privacy-policy#compliance" },
+          { label: "Patient Rights", href: "/privacy-policy#user-rights" },
         ],
       },
     ],

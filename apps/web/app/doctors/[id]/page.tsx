@@ -6,7 +6,9 @@ import type { Metadata } from "next";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import AppointmentBookingForm from "@/components/booking/AppointmentBookingForm";
-import { DOCTORS_DATA, getDoctorById } from "@/lib/medical-data";
+import { DOCTORS_DATA, getDoctorById, Doctor, mapDbDoctorToDoctor } from "@/lib/medical-data";
+import { connectToDatabase } from "@/lib/db/mongodb";
+import { DoctorProfile } from "@/lib/models/DoctorProfile";
 import {
   ChevronRight,
   Star,
@@ -30,9 +32,27 @@ export async function generateStaticParams() {
   }));
 }
 
+async function resolveDoctor(id: string): Promise<Doctor | null> {
+  try {
+    await connectToDatabase();
+    const query: Record<string, any> = { doctorId: id };
+    if (id.match(/^[0-9a-fA-F]{24}$/)) {
+      query.$or = [{ doctorId: id }, { _id: id }];
+      delete query.doctorId;
+    }
+    const doc: any = await DoctorProfile.findOne(query).lean();
+    if (doc) {
+      return mapDbDoctorToDoctor(doc);
+    }
+  } catch {
+    // Database fallback
+  }
+  return getDoctorById(id) || null;
+}
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id } = await params;
-  const doctor = getDoctorById(id);
+  const doctor = await resolveDoctor(id);
 
   if (!doctor) {
     return {
@@ -48,7 +68,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function DoctorProfilePage({ params }: PageProps) {
   const { id } = await params;
-  const doctor = getDoctorById(id);
+  const doctor = await resolveDoctor(id);
 
   if (!doctor) {
     notFound();

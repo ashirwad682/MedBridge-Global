@@ -152,7 +152,7 @@ export default function Footer() {
 
         {/* Bottom Bar: Compact & Clean */}
         <div className="pt-6 flex flex-col sm:flex-row items-center justify-between text-[11px] text-neutral-500 dark:text-neutral-400 gap-3">
-          <p>© 2026 MedBridge Global Inc. All rights reserved.</p>
+          <p>© 2026 Ashirwad Kumar. All rights reserved.</p>
           <div className="flex items-center gap-4">
             <Link href="/privacy-policy" className="hover:text-neutral-900 dark:hover:text-white transition-colors">
               Privacy Policy

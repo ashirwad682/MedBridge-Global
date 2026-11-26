@@ -6,7 +6,7 @@ import { DOCTORS_DATA, SPECIALTIES_DATA } from "../apps/web/lib/medical-data";
 
 dotenv.config({ path: path.resolve(process.cwd(), ".env.local") });
 
-const MONGODB_URI = process.env.MONGODB_URI || "mongodb+srv://ashirwad682_db_user:QyvSLhPDx3uZWHe1@omnicareglobal.xzijral.mongodb.net/?retryWrites=true&w=majority";
+const MONGODB_URI = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/medbridge";
 const MONGODB_DB_NAME = process.env.MONGODB_DB_NAME || "medbridge";
 
 console.log("Connecting to MongoDB Atlas:", MONGODB_DB_NAME);

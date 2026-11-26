@@ -1,0 +1,47 @@
+name: Security Audit & Code Verification
+
+on:
+  push:
+    branches:
+      - main
+      - feat/*
+      - fix/*
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  security-audit:
+    name: Secret Scanning, Vulnerability Audit & Typecheck
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js Runtime
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+
+      - name: Install Workspace Dependencies
+        run: npm ci
+
+      - name: Run Secret Leak Scanning Script
+        run: npm run security:check
+
+      - name: Audit NPM Dependencies
+        run: npm audit --audit-level=high || true
+
+      - name: Verify Web TypeScript Types
+        run: npx tsc --noEmit -p apps/web/tsconfig.json
+
+      - name: Verify Backend TypeScript Types
+        run: npx tsc --noEmit -p backend/tsconfig.json

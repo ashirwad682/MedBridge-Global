@@ -143,3 +143,11 @@ Both Web and Mobile support instant demonstration credentials:
 | :--- | :--- | :--- |
 | **Patient** | `patient@medbridge.com` | `password123` |
 | **Doctor** | `doctor@medbridge.com` | `password123` |
+
+---
+
+## 7. License
+
+Copyright © 2026 Ashirwad Kumar. All Rights Reserved.  
+This project and its original source materials are proprietary software. See [LICENSE](LICENSE) for terms. Third-party open-source dependencies are acknowledged in [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md).
+

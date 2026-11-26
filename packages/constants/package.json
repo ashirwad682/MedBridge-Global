@@ -2,6 +2,8 @@
   "name": "@medbridge/constants",
   "version": "0.1.0",
   "main": "./src/index.ts",
-  "types": "./src/index.ts"
+  "types": "./src/index.ts",
+  "author": "Ashirwad Kumar",
+  "license": "UNLICENSED",
+  "copyright": "Copyright (c) 2026 Ashirwad Kumar. All Rights Reserved."
 }
-

@@ -1,4 +1,13 @@
 /**
+ * MedBridge Global - Connected Healthcare Platform
+ * Copyright (c) 2026 Ashirwad Kumar. All Rights Reserved.
+ * Proprietary and Confidential.
+ *
+ * Unauthorized copying, distribution, or modification of this file,
+ * via any medium, is strictly prohibited.
+ */
+
+/**
  * Site configuration and data dictionary for MedBridge Global
  */
 

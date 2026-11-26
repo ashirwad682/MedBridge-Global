@@ -1,0 +1,20 @@
+# Global Code Ownership for MedBridge Global
+# Copyright (c) 2026 Ashirwad Kumar. All Rights Reserved.
+# All original code and assets are owned exclusively by Ashirwad Kumar.
+
+# Default owner for everything in the repository
+* @ashirwad682
+
+# Application layers
+/apps/web/           @ashirwad682
+/apps/mobile/        @ashirwad682
+/backend/            @ashirwad682
+
+# Shared packages
+/packages/           @ashirwad682
+
+# Security, licensing, and workflow configuration
+/.github/            @ashirwad682
+/LICENSE             @ashirwad682
+/SECURITY.md         @ashirwad682
+/THIRD_PARTY_LICENSES.md @ashirwad682

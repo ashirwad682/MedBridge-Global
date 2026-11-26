@@ -1,3 +1,12 @@
+/**
+ * MedBridge Global - Connected Healthcare Platform
+ * Copyright (c) 2026 Ashirwad Kumar. All Rights Reserved.
+ * Proprietary and Confidential.
+ *
+ * Unauthorized copying, distribution, or modification of this file,
+ * via any medium, is strictly prohibited.
+ */
+
 import mongoose, { Schema, Document, Model } from "mongoose";
 
 export type DoctorVerificationStatus = "PENDING" | "VERIFIED" | "REJECTED";

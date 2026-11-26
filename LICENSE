@@ -1,21 +1,82 @@
-MIT License
+MEDBRIDGE GLOBAL PROPRIETARY SOFTWARE LICENSE & INTELLECTUAL PROPERTY NOTICE
 
-Copyright (c) 2026 ASHIRWAD KUMAR
+Copyright (c) 2026 Ashirwad Kumar. All Rights Reserved.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+IMPORTANT — READ CAREFULLY:
+This software, source code, documentation, architectures, database schemas, graphic assets, brand identities, algorithms, and associated intellectual property (collectively, the "Software") are the exclusive proprietary property of Ashirwad Kumar ("Copyright Holder" / "Licensor").
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+By accessing, viewing, downloading, cloning, compiling, or executing any portion of the Software, you ("Licensee" or "Recipient") agree to be strictly bound by the terms and conditions of this Proprietary Software License (the "License"). If you do not agree to all terms, you are NOT authorized to access, copy, retain, or use this Software in any manner.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+================================================================================
+1. PROPRIETARY OWNERSHIP & RESERVATION OF RIGHTS
+================================================================================
+The Software is licensed, not sold. Ashirwad Kumar retains all right, title, interest, ownership, copyright, trademarks, service marks, trade secrets, patents, and any other intellectual property rights in and to the Software worldwide. 
+
+All rights not expressly granted to you under this License are strictly reserved by Ashirwad Kumar. No implied licenses, rights, or estoppel are granted hereunder.
+
+================================================================================
+2. EXPRESS RESTRICTIONS (PROHIBITED USES)
+================================================================================
+Except as expressly permitted by prior written consent signed personally by Ashirwad Kumar, you shall NOT, directly or indirectly:
+
+  (a) COPY & REPRODUCTION:
+      Copy, duplicate, mirror, reproduce, or transcribe the Software, whether in whole or in part, in any format, medium, or repository.
+
+  (b) REDISTRIBUTION & REPUBLISHING:
+      Redistribute, republish, upload, transmit, broadcast, stream, or make available the Software or any portion thereof on public repositories, private networks, code-sharing portals, bulletin boards, or third-party platforms.
+
+  (c) MODIFICATIONS & DERIVATIVE WORKS:
+      Modify, adapt, translate, enhance, alter, or create derivative works, forks, extensions, or improvements based upon the Software.
+
+  (d) COMMERCIAL EXPLOITATION & RESALE:
+      Sell, resell, rent, lease, license, sublicense, monetize, commercialize, provide as a Software-as-a-Service (SaaS), Platform-as-a-Service (PaaS), or otherwise exploit the Software for any commercial, non-commercial, or enterprise gain.
+
+  (e) REVERSE ENGINEERING:
+      Decompile, disassemble, reverse engineer, decrypt, extract source code, or attempt to derive the underlying architecture, algorithms, data structures, or trade secrets of compiled assets or binary distributions.
+
+  (f) BRANDING & TRADEMARK PROTECTION:
+      Use, register, or display the "MedBridge", "MedBridge Global", logos, trade dress, visual icons, brand emblems, or any confusingly similar names, marks, or branding without explicit written authorization.
+
+  (g) ACCESS CONTROL BYPASS:
+      Circumvent, disable, defeat, or tamper with any digital rights management, security checks, repository access rules, licensing controls, or authentication mechanisms embedded within the Software.
+
+================================================================================
+3. PERMITTED EVALUATION USAGE
+================================================================================
+Subject to compliance with this License, Ashirwad Kumar grants you a limited, non-exclusive, non-transferable, revocable, personal license to:
+  (i)   Inspect and review the source code solely for internal evaluation, verification, academic peer review, or technical assessment purposes;
+  (ii)  Execute the Software locally on a non-production development workstation strictly for personal evaluation of the platform's capabilities.
+
+This evaluation license does NOT convey any ownership rights, distribution rights, commercial privileges, or rights to deploy the Software into production environments.
+
+================================================================================
+4. PRIOR WRITTEN AUTHORIZATION
+================================================================================
+Any deployment, commercial licensing, partnership, custom integration, or distribution of this Software requires a separate, legally binding written agreement executed by Ashirwad Kumar. Inquiries for licensing, permissions, or commercial collaboration must be directed to:
+
+    Ashirwad Kumar
+    Project Owner & Copyright Holder
+    Repository: https://github.com/ashirwad682/MedBridge-Global
+    Contact: ashirwadkumar.dev@gmail.com
+
+================================================================================
+5. THIRD-PARTY OPEN SOURCE ATTRIBUTION
+================================================================================
+The Software utilizes certain third-party open-source libraries, packages, and frameworks (such as Next.js, React, Tailwind CSS, Express, Mongoose, and Expo) under their respective open-source licenses (including MIT, Apache 2.0, and BSD). 
+
+Ashirwad Kumar makes no claim of ownership over third-party open-source software. All third-party copyrights and licenses are acknowledged, preserved, and detailed in THIRD_PARTY_LICENSES.md. Nothing in this proprietary license shall be construed to limit your rights under the applicable open-source licenses for those independent third-party components.
+
+================================================================================
+6. DISCLAIMER OF WARRANTIES
+================================================================================
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EITHER EXPRESS, IMPLIED, STATUTORY, OR OTHERWISE, INCLUDING BUT NOT LIMITED TO THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE, AND NON-INFRINGEMENT. ASHIRWAD KUMAR DOES NOT WARRANT THAT THE SOFTWARE WILL BE UNINTERRUPTED, SECURE, ACCURATE, OR ERROR-FREE.
+
+================================================================================
+7. LIMITATION OF LIABILITY
+================================================================================
+IN NO EVENT SHALL ASHIRWAD KUMAR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, PUNITIVE, OR CONSEQUENTIAL DAMAGES (INCLUDING LOSS OF PROFITS, DATA, USE, REVENUE, GOODWILL, OR BUSINESS INTERRUPTION) ARISING OUT OF OR IN CONNECTION WITH THE ACCESS, USE, INABILITY TO USE, OR PERFORMANCE OF THE SOFTWARE, UNDER ANY THEORY OF LIABILITY.
+
+================================================================================
+8. GOVERNING LAW & JURISDICTION
+================================================================================
+This License and all matters arising out of or relating to this Software shall be governed by and construed in accordance with applicable copyright laws, international copyright conventions (including the Berne Convention and WIPO Copyright Treaty), and applicable domestic laws without regard to conflict of law principles. Any unauthorized use or infringement will be subject to civil damages, statutory penalties, and injunctive relief.

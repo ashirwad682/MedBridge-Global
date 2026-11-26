@@ -175,13 +175,22 @@ export default function ChatWindow({
             </button>
           ) : (
             <div className="flex items-center gap-1.5">
-              <Image
-                src="/images/medbridge-ai-logo.webp"
-                alt="MedBridge AI Logo"
-                width={18}
-                height={18}
-                className="w-4.5 h-4.5 rounded-full object-contain"
-              />
+              <div className="w-5 h-5 rounded-full bg-neutral-100 dark:bg-white/10 flex items-center justify-center p-0.5">
+                <Image
+                  src="/images/medbridge-icon.png"
+                  alt="MedBridge AI Logo"
+                  width={16}
+                  height={16}
+                  className="w-full h-full object-contain dark:hidden"
+                />
+                <Image
+                  src="/images/medbridge-icon-white.png"
+                  alt="MedBridge AI Logo"
+                  width={16}
+                  height={16}
+                  className="w-full h-full object-contain hidden dark:block"
+                />
+              </div>
               <span className="text-[10.5px] font-bold tracking-[0.14em] text-neutral-500 dark:text-neutral-400 uppercase">
                 MedBridge
               </span>

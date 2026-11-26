@@ -1,9 +1,10 @@
 import { Response } from "express";
+import crypto from "crypto";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { AuthenticatedRequest } from "../middleware/auth";
 import { ENV } from "../config/env";
-import { User, DoctorProfile, PatientProfile } from "../models";
+import { User, DoctorProfile, PatientProfile, PasswordResetToken, EmailVerificationToken } from "../models";
 import { loginSchema, patientRegisterSchema, doctorRegisterSchema } from "@medbridge/validation";
 
 function signToken(payload: { userId: string; email: string; role: string; fullName: string }): string {
@@ -267,6 +268,165 @@ export const authController = {
 
   getMe: async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     return authController.me(req, res);
+  },
+
+  register: async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    const role = (req.body?.role || "").toLowerCase();
+    if (role === "doctor") {
+      return authController.registerDoctor(req, res);
+    }
+    return authController.registerPatient(req, res);
+  },
+
+  forgotPassword: async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+      const email = req.body?.email?.trim()?.toLowerCase();
+      if (!email) {
+        res.status(400).json({ success: false, error: "Email is required" });
+        return;
+      }
+
+      const user = await User.findOne({ email });
+      if (user && user.isActive) {
+        await PasswordResetToken.updateMany({ userId: user._id, isUsed: false }, { isUsed: true });
+        const rawToken = crypto.randomBytes(32).toString("hex");
+        const tokenHash = crypto.createHash("sha256").update(rawToken).digest("hex");
+        const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+
+        await PasswordResetToken.create({
+          userId: user._id,
+          tokenHash,
+          expiresAt,
+          isUsed: false,
+        });
+
+        console.log(`[Backend Auth] Password reset token for ${email}: ${rawToken}`);
+      }
+
+      res.json({
+        success: true,
+        message: "If an active account exists with that email address, password reset instructions have been dispatched.",
+      });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Error processing password reset";
+      res.status(500).json({ success: false, error: msg });
+    }
+  },
+
+  resetPassword: async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+      const { token, password } = req.body;
+      if (!token || !password || password.length < 8) {
+        res.status(400).json({ success: false, error: "Valid token and password (min 8 chars) required" });
+        return;
+      }
+
+      const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
+      const record = await PasswordResetToken.findOne({
+        tokenHash,
+        isUsed: false,
+        expiresAt: { $gt: new Date() },
+      });
+
+      if (!record) {
+        res.status(400).json({ success: false, error: "Invalid or expired password reset link" });
+        return;
+      }
+
+      const user = await User.findById(record.userId);
+      if (!user || !user.isActive) {
+        res.status(400).json({ success: false, error: "Account not found or inactive" });
+        return;
+      }
+
+      user.passwordHash = await bcrypt.hash(password, 12);
+      await user.save();
+
+      record.isUsed = true;
+      await record.save();
+
+      res.json({
+        success: true,
+        message: "Your password has been successfully updated. You may now sign in.",
+      });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Error resetting password";
+      res.status(500).json({ success: false, error: msg });
+    }
+  },
+
+  verifyEmail: async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+      const token = req.body?.token;
+      if (!token) {
+        res.status(400).json({ success: false, error: "Verification token is required" });
+        return;
+      }
+
+      const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
+      const record = await EmailVerificationToken.findOne({
+        tokenHash,
+        isUsed: false,
+        expiresAt: { $gt: new Date() },
+      });
+
+      if (!record) {
+        res.status(400).json({ success: false, error: "Invalid or expired verification token" });
+        return;
+      }
+
+      const user = await User.findById(record.userId);
+      if (!user) {
+        res.status(404).json({ success: false, error: "User not found" });
+        return;
+      }
+
+      user.isEmailVerified = true;
+      await user.save();
+
+      record.isUsed = true;
+      await record.save();
+
+      res.json({ success: true, message: "Email address verified successfully" });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Error verifying email";
+      res.status(500).json({ success: false, error: msg });
+    }
+  },
+
+  resendVerification: async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+      const email = req.body?.email?.trim()?.toLowerCase();
+      if (!email) {
+        res.status(400).json({ success: false, error: "Email is required" });
+        return;
+      }
+
+      const user = await User.findOne({ email });
+      if (user && !user.isEmailVerified && user.isActive) {
+        await EmailVerificationToken.updateMany({ userId: user._id, isUsed: false }, { isUsed: true });
+        const rawToken = crypto.randomBytes(32).toString("hex");
+        const tokenHash = crypto.createHash("sha256").update(rawToken).digest("hex");
+        const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+        await EmailVerificationToken.create({
+          userId: user._id,
+          tokenHash,
+          expiresAt,
+          isUsed: false,
+        });
+
+        console.log(`[Backend Auth] Verification token for ${email}: ${rawToken}`);
+      }
+
+      res.json({
+        success: true,
+        message: "If your account requires verification, a new link has been dispatched.",
+      });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Error resending verification";
+      res.status(500).json({ success: false, error: msg });
+    }
   },
 
   logout: async (_req: AuthenticatedRequest, res: Response): Promise<void> => {

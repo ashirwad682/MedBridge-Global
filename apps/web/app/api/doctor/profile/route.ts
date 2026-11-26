@@ -61,9 +61,16 @@ export async function GET() {
         bio: profileDoc.bio,
         profileImage: profileDoc.profileImage || profileDoc.image,
         isAcceptingNewPatients: profileDoc.isAcceptingNewPatients ?? true,
+        isAcceptingPatients: profileDoc.isAcceptingNewPatients ?? true,
         availableDays: profileDoc.availableDays || ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
         availableHours: profileDoc.availableHours || "09:00 AM - 05:00 PM",
         createdAt: userDoc.createdAt,
+      },
+      stats: {
+        todayAppointmentsCount: todayAppointments.length,
+        completedConsultationsCount: completedCount,
+        pendingReviewsCount: confirmedCount,
+        rating: profileDoc.rating || 4.95,
       },
       metrics: {
         todayPatientsCount: todayAppointments.length,
@@ -72,6 +79,18 @@ export async function GET() {
         completedCount,
         rating: profileDoc.rating || 4.95,
       },
+      todayQueue: todayAppointments.map((a: any) => ({
+        id: a.bookingReference,
+        bookingReference: a.bookingReference,
+        patientName: a.patientName,
+        patientEmail: a.patientEmail,
+        patientPhone: a.patientPhone,
+        timeSlot: a.appointmentTime,
+        type: a.consultationType === "VIRTUAL" ? "Virtual Consultation" : "In-Person Consultation",
+        chiefComplaint: a.reason || "General Consultation",
+        status: a.status === "CONFIRMED" ? "Confirmed" : a.status === "COMPLETED" ? "Completed" : "Checked In",
+        appointmentDate: a.appointmentDate,
+      })),
       queue: todayAppointments.map((a: any) => ({
         id: a.bookingReference,
         bookingReference: a.bookingReference,
@@ -115,29 +134,39 @@ export async function PATCH(req: NextRequest) {
     await connectToDatabase();
 
     // Check if toggling status of an appointment in doctor's queue
-    if (body.action === "UPDATE_APPOINTMENT_STATUS" && body.appointmentId && body.newStatus) {
+    const appointmentId = body.appointmentId;
+    const newStatus = body.newStatus || body.status;
+    if (appointmentId && newStatus) {
+      const statusUpper = String(newStatus).toUpperCase().replace(/\s+/g, "_");
       const updatedApt = await Appointment.findOneAndUpdate(
-        { bookingReference: body.appointmentId },
-        { $set: { status: body.newStatus.toUpperCase() } },
+        { bookingReference: String(appointmentId).toUpperCase() },
+        { $set: { status: statusUpper } },
         { new: true }
       );
       return NextResponse.json({
         success: true,
-        message: `Appointment ${body.appointmentId} status updated to ${body.newStatus}.`,
+        message: `Appointment ${appointmentId} status updated to ${newStatus}.`,
         appointment: updatedApt,
       });
     }
 
     // Check if toggling doctor availability
-    if (typeof body.isAcceptingNewPatients === "boolean") {
+    const accepting =
+      typeof body.isAcceptingNewPatients === "boolean"
+        ? body.isAcceptingNewPatients
+        : typeof body.isAcceptingPatients === "boolean"
+          ? body.isAcceptingPatients
+          : undefined;
+
+    if (accepting !== undefined) {
       const updatedProfile = await DoctorProfile.findOneAndUpdate(
         { $or: [{ userId: auth.user.id }, { doctorId: auth.user.email.split("@")[0] }] },
-        { $set: { isAcceptingNewPatients: body.isAcceptingNewPatients } },
+        { $set: { isAcceptingNewPatients: accepting } },
         { new: true }
       );
       return NextResponse.json({
         success: true,
-        message: `Clinic availability updated to ${body.isAcceptingNewPatients ? "Accepting Patients" : "Full Capacity"}.`,
+        message: `Clinic availability updated to ${accepting ? "Accepting Patients" : "Full Capacity"}.`,
         profile: updatedProfile,
       });
     }

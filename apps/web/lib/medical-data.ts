@@ -70,6 +70,55 @@ export interface AppointmentRecord {
   createdAt: string;
 }
 
+export function mapDbDoctorToDoctor(doc: any): Doctor {
+  const edu = Array.isArray(doc.education)
+    ? doc.education
+    : typeof doc.education === "string"
+      ? [doc.education]
+      : Array.isArray(doc.qualifications)
+        ? doc.qualifications
+        : ["MD, Board Certified"];
+
+  const quals = Array.isArray(doc.qualifications)
+    ? doc.qualifications
+    : typeof doc.education === "string"
+      ? [doc.education]
+      : ["MD"];
+
+  const expertise = Array.isArray(doc.areasOfExpertise)
+    ? doc.areasOfExpertise
+    : Array.isArray(doc.specializations)
+      ? doc.specializations
+      : [doc.specialtyName || "General Specialist Consultation"];
+
+  const expYears =
+    typeof doc.experienceYears === "number"
+      ? doc.experienceYears
+      : typeof doc.yearsOfExperience === "number"
+        ? doc.yearsOfExperience
+        : parseInt(String(doc.experience || "10"), 10) || 10;
+
+  return {
+    id: doc.doctorId || doc.id,
+    name: doc.name || doc.fullName,
+    title: doc.roleTitle || doc.title || doc.specialization || "Specialist Physician",
+    specialtyId: doc.specialtyId,
+    specialtyName: doc.specialtyName,
+    image: doc.image || doc.profileImage || "/images/doctors/marcus-chen.png",
+    qualifications: quals,
+    experienceYears: expYears,
+    availability: doc.availableHours || doc.availability || "Mon – Fri: 09:00 AM – 05:00 PM",
+    rating: doc.rating || 4.9,
+    reviewsCount: doc.reviewCount || doc.reviewsCount || 100,
+    languages: Array.isArray(doc.languages) ? doc.languages : ["English"],
+    hospitalAffiliation: doc.hospitalAffiliation || doc.hospitalOrClinic || "MedBridge Specialist Network",
+    consultationFee: doc.consultationFee || "$200",
+    bio: doc.bio || "",
+    education: edu,
+    areasOfExpertise: expertise,
+  };
+}
+
 export const SPECIALTIES_DATA: Record<string, SpecialtyData> = {
   "internal-medicine": {
     id: "internal-medicine",

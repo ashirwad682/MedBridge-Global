@@ -2,16 +2,28 @@ import mongoose from "mongoose";
 import { ENV } from "./env";
 
 export async function connectDB(): Promise<typeof mongoose> {
+  if (mongoose.connection.readyState === 1) {
+    return mongoose;
+  }
+
   try {
     const conn = await mongoose.connect(ENV.MONGODB_URI, {
       dbName: ENV.MONGODB_DB_NAME,
       serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000,
+      maxPoolSize: 10,
+      minPoolSize: 2,
     });
-    console.log(`[Backend MongoDB] Connected successfully to ${ENV.MONGODB_DB_NAME}`);
+    console.log(`[Backend MongoDB] Connected successfully to database: ${ENV.MONGODB_DB_NAME}`);
     return conn;
-  } catch (error) {
-    console.warn(`[Backend MongoDB] Warning: MongoDB not reachable at ${ENV.MONGODB_URI}. In-memory fallback will handle requests.`);
-    return mongoose;
+  } catch (error: any) {
+    console.error(`[Backend MongoDB] Connection failed:`, error.message);
+    throw error;
   }
 }
+
+export function isDatabaseConnected(): boolean {
+  return mongoose.connection.readyState === 1;
+}
+
 

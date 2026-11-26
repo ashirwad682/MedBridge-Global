@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 import { connectToDatabase } from "@/lib/db/mongodb";
 import { User, DoctorProfile } from "@/lib/models";
 import { doctorRegisterSchema } from "@/lib/auth/validation";
-import { setSessionCookie } from "@/lib/auth/session";
+import { setSessionCookie, signToken } from "@/lib/auth/session";
 import { checkRateLimit } from "@/lib/auth/rate-limit";
 import { logAuditEvent } from "@/lib/auth/audit";
 
@@ -90,13 +90,15 @@ export async function POST(req: NextRequest) {
       hospitalOrClinic: "MedBridge Specialist Network",
     });
 
-    // 9. Issue session cookie
-    await setSessionCookie({
+    // 9. Issue session cookie and JWT Bearer token
+    const sessionPayload = {
       userId: newUser._id.toString(),
       email: newUser.email,
       role: newUser.role,
       fullName: newUser.fullName,
-    });
+    };
+    const token = signToken(sessionPayload);
+    await setSessionCookie(sessionPayload);
 
     await logAuditEvent({
       userId: newUser._id,
@@ -118,6 +120,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       {
         success: true,
+        token,
         user: {
           id: newUser._id.toString(),
           name: newUser.fullName,

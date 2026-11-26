@@ -133,6 +133,12 @@ export const doctorApi = {
   },
 };
 
+export const specialtyApi = {
+  getAllSpecialties: async (): Promise<{ success: boolean; count: number; specialties: any[] }> => {
+    return request<{ success: boolean; count: number; specialties: any[] }>("/api/specialties");
+  },
+};
+
 export const appointmentApi = {
   getSlots: async (date: string, doctorId?: string): Promise<{ bookedSlots: string[] }> => {
     const query = new URLSearchParams({ date });
@@ -155,8 +161,76 @@ export const appointmentApi = {
   cancelAppointment: async (id: string, reason?: string): Promise<{ success: boolean; message?: string }> => {
     return request<{ success: boolean; message?: string }>(`${API_ENDPOINTS.APPOINTMENTS}`, {
       method: "PATCH",
-      body: JSON.stringify({ id, action: "cancel", reason }),
+      body: JSON.stringify({ id, action: "cancel", cancellationReason: reason }),
     });
   },
 };
 
+export const contactApi = {
+  submitInquiry: async (data: {
+    name: string;
+    email: string;
+    phone?: string;
+    subject?: string;
+    department?: string;
+    message: string;
+  }): Promise<{ success: boolean; ticketId?: string; message?: string }> => {
+    return request<{ success: boolean; ticketId?: string; message?: string }>("/api/contact", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  },
+
+  getInquiry: async (params: { ticketId?: string; email?: string }): Promise<any> => {
+    const query = new URLSearchParams();
+    if (params.ticketId) query.set("ticketId", params.ticketId);
+    if (params.email) query.set("email", params.email);
+    return request<any>(`/api/contact?${query.toString()}`);
+  },
+};
+
+export const patientApi = {
+  getProfile: async (): Promise<{ success: boolean; profile: any; metrics: any; appointments: any[] }> => {
+    return request<{ success: boolean; profile: any; metrics: any; appointments: any[] }>("/api/patient/profile");
+  },
+
+  updateProfile: async (data: Record<string, any>): Promise<{ success: boolean; profile: any }> => {
+    return request<{ success: boolean; profile: any }>("/api/patient/profile", {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+  },
+};
+
+export const doctorProfileApi = {
+  getProfile: async (): Promise<{ success: boolean; profile: any; stats: any; todayQueue: any[] }> => {
+    return request<{ success: boolean; profile: any; stats: any; todayQueue: any[] }>("/api/doctor/profile");
+  },
+
+  updateProfile: async (data: Record<string, any>): Promise<{ success: boolean; profile: any }> => {
+    return request<{ success: boolean; profile: any }>("/api/doctor/profile", {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+  },
+
+  getVerificationStatus: async (): Promise<{ success: boolean; verificationStatus: string; isVerified: boolean }> => {
+    return request<{ success: boolean; verificationStatus: string; isVerified: boolean }>("/api/doctor/verification-status");
+  },
+
+  updateAppointmentStatus: async (appointmentId: string, status: string): Promise<{ success: boolean }> => {
+    return request<{ success: boolean }>("/api/doctor/profile", {
+      method: "PATCH",
+      body: JSON.stringify({ appointmentId, status }),
+    });
+  },
+};
+
+export const chatApi = {
+  sendMessage: async (message: string): Promise<{ reply: any }> => {
+    return request<{ reply: any }>("/api/chat", {
+      method: "POST",
+      body: JSON.stringify({ message }),
+    });
+  },
+};

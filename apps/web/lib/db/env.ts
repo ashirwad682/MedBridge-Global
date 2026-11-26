@@ -16,11 +16,13 @@ export function getEnv(): Env {
   if (validatedEnv) return validatedEnv;
 
   const parsed = envSchema.safeParse({
-    MONGODB_URI: process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/medbridge_global",
-    MONGODB_DB_NAME: process.env.MONGODB_DB_NAME || "medbridge_global",
+    MONGODB_URI:
+      process.env.MONGODB_URI ||
+      "mongodb+srv://ashirwad682_db_user:QyvSLhPDx3uZWHe1@omnicareglobal.xzijral.mongodb.net/?retryWrites=true&w=majority",
+    MONGODB_DB_NAME: process.env.MONGODB_DB_NAME || "medbridge",
     AUTH_SECRET:
       process.env.AUTH_SECRET ||
-      "medbridge_production_grade_jwt_session_secret_key_minimum_32_characters_long_2026",
+      "medbridge_super_secret_jwt_key_2026_healthcare_security",
     APP_URL: process.env.APP_URL || "http://localhost:3000",
     NODE_ENV: process.env.NODE_ENV || "development",
   });

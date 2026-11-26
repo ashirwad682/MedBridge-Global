@@ -148,8 +148,13 @@ export const appointmentController = {
         return;
       }
 
+      const isObjectId = typeof id === "string" && id.match(/^[0-9a-fA-F]{24}$/);
+      const findQuery = isObjectId
+        ? { $or: [{ bookingReference: String(id).toUpperCase() }, { _id: id }] }
+        : { bookingReference: String(id).toUpperCase() };
+
       const updated = await Appointment.findOneAndUpdate(
-        { $or: [{ bookingReference: String(id).toUpperCase() }, { _id: id }] },
+        findQuery,
         {
           $set: {
             status: "CANCELLED",

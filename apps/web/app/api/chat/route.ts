@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { SPECIALTIES_DATA, DOCTORS_DATA } from "@/lib/medical-data";
+import { SPECIALTIES_DATA, DOCTORS_DATA, mapDbDoctorToDoctor } from "@/lib/medical-data";
+import { connectToDatabase } from "@/lib/db/mongodb";
+import { DoctorProfile } from "@/lib/models/DoctorProfile";
 
 export interface ChatMessageData {
   id: string;
@@ -111,51 +113,7 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // 3. APPOINTMENT BOOKING INTENT
-    if (
-      cleanMsg.includes("book") ||
-      cleanMsg.includes("appointment") ||
-      cleanMsg.includes("schedule") ||
-      cleanMsg.includes("consultation")
-    ) {
-      // Check if user specifically mentioned a specialty
-      let matchedSpecId: string | undefined = undefined;
-      for (const [id, spec] of Object.entries(SPECIALTIES_DATA)) {
-        if (cleanMsg.includes(spec.name.toLowerCase()) || cleanMsg.includes(id)) {
-          matchedSpecId = id;
-          break;
-        }
-      }
-
-      const specName = matchedSpecId
-        ? SPECIALTIES_DATA[matchedSpecId]?.name
-        : undefined;
-
-      return NextResponse.json({
-        reply: {
-          id: `bot-${Date.now()}`,
-          sender: "bot",
-          text: specName
-            ? `I can help you schedule an appointment with our **${specName}** department right now. You can pick your preferred physician, date, and convenient time window with zero upfront fee.`
-            : `Booking an appointment on MedBridge Global is simple and takes under 2 minutes across 3 quick steps:\n\n1. **Choose Specialist**: Select from our 8 clinical departments or choose your preferred physician.\n2. **Patient Details**: Provide contact details and demographics.\n3. **Schedule Visit**: Choose an open calendar date and convenient time slot.\n\nWould you like me to open the booking wizard for you now?`,
-          timestamp: new Date().toISOString(),
-          actions: [
-            {
-              label: specName ? `Book ${specName} Visit` : "Book An Appointment",
-              type: "booking",
-              specialtyId: matchedSpecId,
-            },
-            {
-              label: "View All 8 Specialties",
-              type: "link",
-              href: "/#specialties",
-            },
-          ],
-        } as ChatMessageData,
-      });
-    }
-
-    // 4. DOCTOR INQUIRIES & DISCOVERY
+    // 3. DOCTOR INQUIRIES & DISCOVERY
     if (
       cleanMsg.includes("doctor") ||
       cleanMsg.includes("physician") ||
@@ -165,12 +123,34 @@ export async function POST(request: NextRequest) {
       cleanMsg.includes("neurologist") ||
       cleanMsg.includes("internist")
     ) {
+      let activeDoctors = DOCTORS_DATA;
+      try {
+        await connectToDatabase();
+        const dbDocs = await DoctorProfile.find({ verificationStatus: "VERIFIED" }).lean();
+        if (dbDocs && dbDocs.length > 0) {
+          activeDoctors = dbDocs.map(mapDbDoctorToDoctor);
+        }
+      } catch {
+        // Fallback to baseline
+      }
+
       // Find matching doctors if a specific doctor or discipline is mentioned
-      const matchedDoctors = DOCTORS_DATA.filter((doc) => {
+      const isCardio = cleanMsg.includes("cardio");
+      const isNeuro = cleanMsg.includes("neuro");
+      const isDerma = cleanMsg.includes("derma");
+      const isOrtho = cleanMsg.includes("ortho");
+      const isPedia = cleanMsg.includes("pedia");
+
+      const matchedDoctors = activeDoctors.filter((doc) => {
         return (
           cleanMsg.includes(doc.name.toLowerCase()) ||
           cleanMsg.includes(doc.specialtyName.toLowerCase()) ||
-          cleanMsg.includes(doc.title.toLowerCase())
+          cleanMsg.includes(doc.title.toLowerCase()) ||
+          (isCardio && doc.specialtyId === "cardiology") ||
+          (isNeuro && doc.specialtyId === "neurology") ||
+          (isDerma && doc.specialtyId === "dermatology") ||
+          (isOrtho && doc.specialtyId === "orthopedics") ||
+          (isPedia && doc.specialtyId === "pediatrics")
         );
       });
 
@@ -219,6 +199,50 @@ export async function POST(request: NextRequest) {
             {
               label: "Book with First Available",
               type: "booking",
+            },
+          ],
+        } as ChatMessageData,
+      });
+    }
+
+    // 4. APPOINTMENT BOOKING INTENT
+    if (
+      cleanMsg.includes("book") ||
+      cleanMsg.includes("appointment") ||
+      cleanMsg.includes("schedule") ||
+      cleanMsg.includes("consultation")
+    ) {
+      // Check if user specifically mentioned a specialty
+      let matchedSpecId: string | undefined = undefined;
+      for (const [id, spec] of Object.entries(SPECIALTIES_DATA)) {
+        if (cleanMsg.includes(spec.name.toLowerCase()) || cleanMsg.includes(id)) {
+          matchedSpecId = id;
+          break;
+        }
+      }
+
+      const specName = matchedSpecId
+        ? SPECIALTIES_DATA[matchedSpecId]?.name
+        : undefined;
+
+      return NextResponse.json({
+        reply: {
+          id: `bot-${Date.now()}`,
+          sender: "bot",
+          text: specName
+            ? `I can help you schedule an appointment with our **${specName}** department right now. You can pick your preferred physician, date, and convenient time window with zero upfront fee.`
+            : `Booking an appointment on MedBridge Global is simple and takes under 2 minutes across 3 quick steps:\n\n1. **Choose Specialist**: Select from our 8 clinical departments or choose your preferred physician.\n2. **Patient Details**: Provide contact details and demographics.\n3. **Schedule Visit**: Choose an open calendar date and convenient time slot.\n\nWould you like me to open the booking wizard for you now?`,
+          timestamp: new Date().toISOString(),
+          actions: [
+            {
+              label: specName ? `Book ${specName} Visit` : "Book An Appointment",
+              type: "booking",
+              specialtyId: matchedSpecId,
+            },
+            {
+              label: "View All 8 Specialties",
+              type: "link",
+              href: "/#specialties",
             },
           ],
         } as ChatMessageData,
